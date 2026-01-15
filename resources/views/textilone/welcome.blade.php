@@ -813,7 +813,6 @@
                 </div>
                 <a href="{{ route('login') }}" class="admin-link">
                     <i class="material-icons">admin_panel_settings</i>
-                    Panel de Administración
                 </a>
                 <p>{{ $settings->copyright_text ?: '© ' . date('Y') . ' TextilOne. Todos los derechos reservados.' }}</p>
             </footer>
