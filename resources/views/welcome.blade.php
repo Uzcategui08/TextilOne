@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Textilone Chile - Personalización de Textiles</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+       
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+       
+        .poster-container {
+            width: 100%;
+            min-height: 100vh;
+            margin: 0;
+            background: #000000;
+            position: relative;
+            overflow: hidden;
+        }
+       
+        .background-shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.3;
+        }
+       
+        .shape-1 {
+            width: 400px;
+            height: 400px;
+            background-color: #ff0000;
+            top: -100px;
+            right: -100px;
+        }
+       
+        .shape-2 {
+            width: 300px;
+            height: 300px;
+            background-color: #ff0000;
+            bottom: 100px;
+            left: -50px;
+        }
+       
+        .grid-texture {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            z-index: 1;
+        }
+       
+        .content {
+            position: relative;
+            z-index: 2;
+            padding: clamp(18px, 3vw, 48px);
+            width: 100%;
+            min-height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+       
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+       
+        .logo {
+            font-size: 32px;
+            font-weight: 900;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+
+        .logo img {
+            width: clamp(160px, 25vw, 250px);
+            height: auto;
+            max-width: 100%;
+            display: block;
+        }
+       
+        .logo i {
+            margin-right: 10px;
+            font-size: 36px;
+            color: #ff0000;
+        }
+       
+        .nav {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+       
+        .nav-item {
+            color: #ffffff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.3s;
+            position: relative;
+        }
+       
+        .nav-item:hover {
+            color: #ff0000;
+        }
+       
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #ff0000;
+            transition: width 0.3s;
+        }
+       
+        .nav-item:hover::after {
+            width: 100%;
+        }
+       
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: clamp(20px, 4vw, 44px);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+       
+        .hero h1 {
+            font-size: clamp(28px, 4.2vw, 56px);
+            font-weight: 900;
+            color: #ffffff;
+            margin-bottom: 15px;
+            line-height: 1.2;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+       
+        .hero p {
+            font-size: clamp(16px, 1.6vw, 20px);
+            margin-bottom: 25px;
+            color: #cccccc;
+        }
+       
+        .cta-button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: white;
+            padding: 15px 35px;
+            border-radius: 30px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+       
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 0, 0, 0.5);
+        }
+       
+        .section {
+            margin-bottom: 40px;
+        }
+       
+        .section-title {
+            font-size: clamp(22px, 2.4vw, 32px);
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+       
+        .section-title i {
+            margin-right: 15px;
+            color: #ff0000;
+            font-size: 36px;
+        }
+       
+        .services {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+       
+        .service-card {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, background 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+       
+        .service-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+       
+        .service-card i {
+            font-size: 48px;
+            color: #ff0000;
+            margin-bottom: 20px;
+        }
+       
+        .service-card h3 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+       
+        .service-card p {
+            font-size: 16px;
+            color: #cccccc;
+        }
+       
+        .promotions {
+            margin-bottom: 40px;
+        }
+
+        .promo-carousel-wrap {
+            position: relative;
+        }
+
+        .promo-carousel-wrap + .promo-carousel-wrap {
+            margin-top: 18px;
+        }
+
+        .promo-carousel {
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            padding: 4px 4px 14px;
+        }
+
+        .promo-carousel::-webkit-scrollbar {
+            display: none;
+        }
+
+        .promo-track {
+            display: flex;
+            gap: 20px;
+            padding: 4px 0;
+        }
+
+        .promo-carousel .promo-card {
+            flex: 0 0 calc(100% - 8px);
+            margin-bottom: 0;
+            scroll-snap-align: start;
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(10px);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+            transition: background 0.2s, transform 0.2s, opacity 0.2s;
+        }
+
+        .carousel-btn:hover {
+            background: rgba(255, 0, 0, 0.35);
+            transform: translateY(-50%) scale(1.03);
+        }
+
+        .carousel-btn:disabled {
+            opacity: 0.35;
+            cursor: default;
+        }
+
+        .carousel-btn:disabled:hover {
+            background: rgba(0, 0, 0, 0.35);
+            transform: translateY(-50%);
+        }
+
+        .carousel-btn.prev {
+            left: -12px;
+        }
+
+        .carousel-btn.next {
+            right: -12px;
+        }
+       
+        .promo-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border-left: 5px solid #ff0000;
+            transition: transform 0.3s, background 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+       
+        .promo-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+       
+        .promo-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+       
+        .promo-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-right: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+       
+        .promo-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+       
+        .promo-image i {
+            font-size: 48px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+       
+        .promo-content {
+            flex: 1;
+        }
+       
+        .promo-card h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ff0000;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            text-transform: uppercase;
+        }
+       
+        .promo-card h3 i {
+            margin-right: 10px;
+        }
+       
+        .promo-card p {
+            font-size: 18px;
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+       
+        .promo-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+       
+        .promo-detail {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            color: #cccccc;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+       
+        .promo-detail i {
+            font-size: 20px;
+            margin-right: 8px;
+            color: #ff0000;
+        }
+       
+        .products {
+            margin-bottom: 40px;
+        }
+       
+        .product-gallery {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+       
+        .product-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, background 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+       
+        .product-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+       
+        .product-image {
+            height: 180px;
+            background-color: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+       
+        .product-info {
+            padding: 20px;
+        }
+       
+        .product-info h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+       
+        .product-info p {
+            font-size: 16px;
+            color: #cccccc;
+        }
+       
+        .guarantee {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, background 0.3s;
+        }
+       
+        .guarantee:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+       
+        .guarantee i {
+            font-size: 48px;
+            color: #ff0000;
+        }
+       
+        .guarantee-content h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+       
+        .guarantee-content p {
+            font-size: 18px;
+            color: #cccccc;
+        }
+       
+        .footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: #cccccc;
+            font-size: 16px;
+        }
+       
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+       
+        .contact-item {
+            display: flex;
+            align-items: center;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 20px;
+            transition: background 0.3s;
+            max-width: 100%;
+        }
+       
+        .contact-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+       
+        .contact-item i {
+            margin-right: 8px;
+            font-size: 20px;
+            color: #ff0000;
+        }
+       
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+       
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+       
+        .social-link:hover {
+            background-color: #ff0000;
+            transform: translateY(-3px);
+        }
+       
+        .highlight {
+            background: linear-gradient(transparent 60%, rgba(255, 0, 0, 0.3) 40%);
+            padding: 0 3px;
+        }
+       
+        .admin-link {
+            display: inline-flex;
+            align-items: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 15px;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+       
+        .admin-link:hover {
+            color: #ff0000;
+        }
+       
+        .admin-link i {
+            font-size: 16px;
+            margin-right: 5px;
+        }
+
+        /* Responsive breakpoints (mobile-first) */
+        @media (min-width: 768px) {
+            .services {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .product-gallery {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .carousel-btn.prev {
+                left: -16px;
+            }
+
+            .carousel-btn.next {
+                right: -16px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .services {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .product-gallery {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+        }
+
+        @media (max-width: 640px) {
+            .header {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .logo {
+                justify-content: center;
+            }
+
+            .promo-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .promo-image {
+                width: 96px;
+                height: 96px;
+            }
+
+            .carousel-btn.prev {
+                left: 4px;
+            }
+
+            .carousel-btn.next {
+                right: 4px;
+            }
+
+            .guarantee {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="poster-container">
+        <div class="background-shape shape-1"></div>
+        <div class="background-shape shape-2"></div>
+        <div class="grid-texture"></div>
+       
+        <div class="content">
+            <header class="header">
+                <div class="logo">
+                    <img src="{{ asset('images/TextilOne.png') }}" alt="TextilOne Logo">
+                </div>
+                <nav class="nav">
+                    <div class="nav-item">Servicios</div>
+                    <div class="nav-item">Promociones</div>
+                    <div class="nav-item">Contacto</div>
+                </nav>
+            </header>
+           
+            <section class="hero">
+                <h1>Personalización de Textiles de Alta Calidad</h1>
+                <p>Especialistas en estampados, bordados y sublimación para tu empresa</p>
+                <a href="#" class="cta-button">Cotiza ahora</a>
+            </section>
+           
+            <section class="section">
+                <h2 class="section-title">
+                    <i class="material-icons">category</i>
+                    Nuestros Servicios
+                </h2>
+                <div class="services">
+                    <div class="service-card">
+                        <i class="material-icons">print</i>
+                        <h3>Estampados</h3>
+                        <p>Impresión de alta calidad en todo tipo de textiles</p>
+                    </div>
+                    <div class="service-card">
+                        <i class="material-icons">gesture</i>
+                        <h3>Bordados</h3>
+                        <p>Acabados profesionales con bordado a máquina</p>
+                    </div>
+                    <div class="service-card">
+                        <i class="material-icons">palette</i>
+                        <h3>Accesorios</h3>
+                        <p>Impresión completa con colores vibrantes y duraderos</p>
+                    </div>
+                </div>
+            </section>
+           
+            <section class="section promotions">
+                <h2 class="section-title">
+                    <i class="material-icons">local_offer</i>
+                    Promociones Exclusivas
+                </h2>
+
+                @php
+                    $promotions = [
+                        [
+                            'title' => 'Pack Básico',
+                            'description' => '(1) Polerón Canguro + (1) Jockey a partir de 3 promociones o 2 packs',
+                            'details' => [
+                                ['icon' => 'straighten', 'text' => 'Tallas S a XXL'],
+                                ['icon' => 'palette', 'text' => '1 o 2 estampados full color'],
+                                ['icon' => 'checkroom', 'text' => '70% algodón/30% poliéster'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Pack Completo',
+                            'description' => '(1) Polera MC + (1) Cortaviento + (1) Jockey a partir de 2 packs',
+                            'details' => [
+                                ['icon' => 'straighten', 'text' => 'Tallas S a XXL'],
+                                ['icon' => 'palette', 'text' => '1 o 2 estampados full color'],
+                                ['icon' => 'checkroom', 'text' => '100% algodón y poliéster'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Pack Premium',
+                            'description' => '(1) Polera MC + (1) Polerón Canguro + (1) Jockey a partir de 2 packs o 3 unidades',
+                            'details' => [
+                                ['icon' => 'straighten', 'text' => 'Tallas S a XXL'],
+                                ['icon' => 'palette', 'text' => '1 o 2 estampados full color'],
+                                ['icon' => 'checkroom', 'text' => 'Algodón y poliéster de calidad'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Pack Empresa',
+                            'description' => '(5) Poleras + (5) Gorras para uniformes corporativos',
+                            'details' => [
+                                ['icon' => 'apartment', 'text' => 'Ideal para equipos'],
+                                ['icon' => 'palette', 'text' => 'Logo full color'],
+                                ['icon' => 'local_shipping', 'text' => 'Envíos a todo Chile'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Pack Deportista',
+                            'description' => '(3) Poleras dry-fit + (1) Cortaviento',
+                            'details' => [
+                                ['icon' => 'fitness_center', 'text' => 'Tela deportiva'],
+                                ['icon' => 'palette', 'text' => 'Estampado resistente'],
+                                ['icon' => 'schedule', 'text' => 'Entrega rápida'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Pack Bordado Pro',
+                            'description' => '(3) Poleras + (1) Chaqueta con bordado premium',
+                            'details' => [
+                                ['icon' => 'gesture', 'text' => 'Bordado a máquina'],
+                                ['icon' => 'verified', 'text' => 'Terminación profesional'],
+                                ['icon' => 'straighten', 'text' => 'Tallas S a XXL'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Pack Sublimación',
+                            'description' => '(2) Poleras full print + (1) Jockey',
+                            'details' => [
+                                ['icon' => 'palette', 'text' => 'Colores vibrantes'],
+                                ['icon' => 'checkroom', 'text' => 'Tela poliéster'],
+                                ['icon' => 'local_offer', 'text' => 'Promo limitada'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Pack Emprendedor',
+                            'description' => '(10) Stickers textiles + (2) Poleras con marca',
+                            'details' => [
+                                ['icon' => 'storefront', 'text' => 'Para tu marca'],
+                                ['icon' => 'palette', 'text' => 'Diseño personalizado'],
+                                ['icon' => 'support_agent', 'text' => 'Asesoría incluida'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Pack Eventos',
+                            'description' => '(10) Poleras + (10) Credenciales (diseño)',
+                            'details' => [
+                                ['icon' => 'event', 'text' => 'Perfecto para ferias'],
+                                ['icon' => 'palette', 'text' => 'Identidad visual'],
+                                ['icon' => 'groups', 'text' => 'Para equipos grandes'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Pack Seguridad',
+                            'description' => '(2) Cortavientos + (2) Poleras con identificación',
+                            'details' => [
+                                ['icon' => 'shield', 'text' => 'Alta visibilidad'],
+                                ['icon' => 'verified', 'text' => 'Material resistente'],
+                                ['icon' => 'local_shipping', 'text' => 'Despacho disponible'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Pack Full Marca',
+                            'description' => '(2) Polerones + (2) Poleras + (2) Jockeys',
+                            'details' => [
+                                ['icon' => 'star', 'text' => 'Kit completo'],
+                                ['icon' => 'palette', 'text' => 'Branding full'],
+                                ['icon' => 'checkroom', 'text' => 'Calidad premium'],
+                            ],
+                        ],
+                        [
+                            'title' => 'Pack Mayorista',
+                            'description' => '(20) unidades mixtas a elección (poleras/jockeys)',
+                            'details' => [
+                                ['icon' => 'inventory_2', 'text' => 'Precio por volumen'],
+                                ['icon' => 'palette', 'text' => 'Diseños a elección'],
+                                ['icon' => 'support_agent', 'text' => 'Soporte dedicado'],
+                            ],
+                        ],
+                    ];
+
+                    $promoGroups = array_chunk($promotions, 4);
+                @endphp
+
+                @foreach ($promoGroups as $groupIndex => $group)
+                    <div class="promo-carousel-wrap" data-carousel="promo-{{ $groupIndex }}">
+                        <button type="button" class="carousel-btn prev" aria-label="Promoción anterior">
+                            <i class="material-icons">chevron_left</i>
+                        </button>
+
+                        <div class="promo-carousel" role="region" aria-label="Promociones" tabindex="0">
+                            <div class="promo-track">
+                                @foreach ($group as $promo)
+                                    <div class="promo-card">
+                                        <div class="promo-header">
+                                            <div class="promo-image">
+                                                <i class="material-icons">image</i>
+                                            </div>
+                                            <div class="promo-content">
+                                                <h3><i class="material-icons">star</i> {{ $promo['title'] }}</h3>
+                                                <p>{{ $promo['description'] }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="promo-details">
+                                            @foreach ($promo['details'] as $detail)
+                                                <div class="promo-detail"><i class="material-icons">{{ $detail['icon'] }}</i>{{ $detail['text'] }}</div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <button type="button" class="carousel-btn next" aria-label="Siguiente promoción">
+                            <i class="material-icons">chevron_right</i>
+                        </button>
+                    </div>
+                @endforeach
+            </section>
+           
+            <section class="section products">
+                <h2 class="section-title">
+                    <i class="material-icons">shopping_bag</i>
+                    Nuestros Productos
+                </h2>
+                <div class="product-gallery">
+                    <div class="product-card">
+                        <div class="product-image">Polerones personalizados</div>
+                        <div class="product-info">
+                            <h3>Polerones Canguro</h3>
+                            <p>Comodidad y estilo con tu diseño</p>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image">Poleras personalizadas</div>
+                        <div class="product-info">
+                            <h3>Poleras MC</h3>
+                            <p>100% algodón, perfectas para cualquier ocasión</p>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image">Jockeys personalizados</div>
+                        <div class="product-info">
+                            <h3>Jockeys</h3>
+                            <p>Profesionales y resistentes</p>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image">Cortavientos personalizados</div>
+                        <div class="product-info">
+                            <h3>Cortavientos</h3>
+                            <p>Protección contra el viento con tu marca</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+           
+            <section class="guarantee">
+                <i class="material-icons">verified</i>
+                <div class="guarantee-content">
+                    <h3>Garantía de 3 Meses</h3>
+                    <p>Calidad asegurada en todos nuestros productos. Realizamos envíos a todo Chile.</p>
+                </div>
+            </section>
+           
+            <footer class="footer">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="material-icons">phone</i>
+                        +56 9 XXXX XXXX
+                    </div>
+                    <div class="contact-item">
+                        <i class="material-icons">email</i>
+                        contacto@textilonechile.cl
+                    </div>
+                    <div class="contact-item">
+                        <i class="material-icons">location_on</i>
+                        Santiago, Chile
+                    </div>
+                </div>
+                <div class="social-links">
+                    <a href="#" class="social-link">
+                        <i class="material-icons">alternate_email</i>
+                    </a>
+                    <a href="#" class="social-link">
+                        <i class="material-icons">photo_camera</i>
+                    </a>
+                    <a href="#" class="social-link">
+                        <i class="material-icons">language</i>
+                    </a>
+                </div>
+                <a href="{{ route('login') }}" class="admin-link">
+                    <i class="material-icons">admin_panel_settings</i>
+                    Panel de Administración
+                </a>
+                <p>© 2026 Textilone Chile. Todos los derechos reservados.</p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const wraps = document.querySelectorAll('.promo-carousel-wrap');
+            if (!wraps.length) return;
+
+            const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+            const initCarousel = (wrap) => {
+                const carousel = wrap.querySelector('.promo-carousel');
+                const prevBtn = wrap.querySelector('.carousel-btn.prev');
+                const nextBtn = wrap.querySelector('.carousel-btn.next');
+                if (!carousel || !prevBtn || !nextBtn) return;
+
+                // Infinite (wrap-around) arrows
+                const scrollByPage = (direction) => {
+                    const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+                    const amount = Math.max(240, Math.floor(carousel.clientWidth * 0.9));
+
+                    const nearStart = carousel.scrollLeft <= 2;
+                    const nearEnd = carousel.scrollLeft >= maxScrollLeft - 2;
+
+                    if (direction < 0 && nearStart) {
+                        carousel.scrollTo({ left: maxScrollLeft, behavior: 'smooth' });
+                        return;
+                    }
+
+                    if (direction > 0 && nearEnd) {
+                        carousel.scrollTo({ left: 0, behavior: 'smooth' });
+                        return;
+                    }
+
+                    const target = carousel.scrollLeft + direction * amount;
+                    carousel.scrollTo({ left: clamp(target, 0, maxScrollLeft), behavior: 'smooth' });
+                };
+
+                prevBtn.disabled = false;
+                nextBtn.disabled = false;
+
+                prevBtn.addEventListener('click', () => scrollByPage(-1));
+                nextBtn.addEventListener('click', () => scrollByPage(1));
+
+                carousel.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        scrollByPage(-1);
+                    }
+                    if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        scrollByPage(1);
+                    }
+                });
+            };
+
+            wraps.forEach(initCarousel);
+        })();
+    </script>
+</body>
+</html>

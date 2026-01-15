@@ -1,0 +1,158 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Models\Promotion;
+use App\Models\PromotionDetail;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class PromotionController
+{
+  public function index()
+  {
+    $promotions = Promotion::query()
+      ->orderBy('carousel_group')
+      ->orderBy('position')
+      ->get();
+
+    return view('admin.promotions.index', compact('promotions'));
+  }
+
+  public function create()
+  {
+    return view('admin.promotions.create');
+  }
+
+  public function store(Request $request)
+  {
+    $validated = $request->validate([
+      'carousel_group' => ['required', 'integer', 'min:0'],
+      'position' => ['nullable', 'integer', 'min:0'],
+      'is_active' => ['nullable', 'boolean'],
+      'title' => ['required', 'string', 'max:255'],
+      'description' => ['required', 'string', 'max:2000'],
+      'badge_icon' => ['nullable', 'string', 'max:255'],
+      'image' => ['nullable', 'file', 'image', 'max:4096'],
+      'details' => ['nullable', 'array'],
+      'details.*.icon' => ['nullable', 'string', 'max:255'],
+      'details.*.text' => ['nullable', 'string', 'max:255'],
+      'details.*.position' => ['nullable', 'integer', 'min:0'],
+    ]);
+
+    if ($request->hasFile('image')) {
+      $validated['image_path'] = $request->file('image')->store('promotions', 'public');
+    }
+
+    $validated['position'] = $validated['position'] ?? (Promotion::query()
+      ->where('carousel_group', $validated['carousel_group'])
+      ->max('position') + 1);
+    $validated['is_active'] = (bool) ($validated['is_active'] ?? false);
+
+    $promotion = Promotion::query()->create($validated);
+
+    $details = $validated['details'] ?? [];
+    foreach ($details as $detail) {
+      $icon = trim((string) ($detail['icon'] ?? ''));
+      $text = trim((string) ($detail['text'] ?? ''));
+      if ($icon === '' && $text === '') {
+        continue;
+      }
+
+      $promotion->details()->create([
+        'icon' => $icon,
+        'text' => $text,
+        'position' => (int) ($detail['position'] ?? 0),
+      ]);
+    }
+
+    return redirect()->route('admin.promotions.index')->with('status', 'Promoción creada.');
+  }
+
+  public function edit(Promotion $promotion)
+  {
+    $promotion->load('details');
+    $imageUrl = $promotion->image_path ? asset('storage/' . $promotion->image_path) : null;
+
+    return view('admin.promotions.edit', compact('promotion', 'imageUrl'));
+  }
+
+  public function update(Request $request, Promotion $promotion)
+  {
+    $validated = $request->validate([
+      'carousel_group' => ['required', 'integer', 'min:0'],
+      'position' => ['nullable', 'integer', 'min:0'],
+      'is_active' => ['nullable', 'boolean'],
+      'title' => ['required', 'string', 'max:255'],
+      'description' => ['required', 'string', 'max:2000'],
+      'badge_icon' => ['nullable', 'string', 'max:255'],
+      'image' => ['nullable', 'file', 'image', 'max:4096'],
+      'details' => ['nullable', 'array'],
+      'details.*.id' => ['nullable', 'integer'],
+      'details.*.icon' => ['nullable', 'string', 'max:255'],
+      'details.*.text' => ['nullable', 'string', 'max:255'],
+      'details.*.position' => ['nullable', 'integer', 'min:0'],
+    ]);
+
+    if ($request->hasFile('image')) {
+      $newPath = $request->file('image')->store('promotions', 'public');
+
+      if ($promotion->image_path && Storage::disk('public')->exists($promotion->image_path)) {
+        Storage::disk('public')->delete($promotion->image_path);
+      }
+
+      $validated['image_path'] = $newPath;
+    }
+
+    $validated['is_active'] = (bool) ($validated['is_active'] ?? false);
+
+    $promotion->fill($validated)->save();
+
+    $keepIds = [];
+    $details = $validated['details'] ?? [];
+    foreach ($details as $detail) {
+      $icon = trim((string) ($detail['icon'] ?? ''));
+      $text = trim((string) ($detail['text'] ?? ''));
+      if ($icon === '' && $text === '') {
+        continue;
+      }
+
+      $payload = [
+        'icon' => $icon,
+        'text' => $text,
+        'position' => (int) ($detail['position'] ?? 0),
+      ];
+
+      $id = $detail['id'] ?? null;
+      if ($id) {
+        $existing = $promotion->details()->whereKey($id)->first();
+        if ($existing) {
+          $existing->fill($payload)->save();
+          $keepIds[] = $existing->id;
+          continue;
+        }
+      }
+
+      $created = $promotion->details()->create($payload);
+      $keepIds[] = $created->id;
+    }
+
+    $promotion->details()->whereNotIn('id', $keepIds)->delete();
+
+    return redirect()->route('admin.promotions.index')->with('status', 'Promoción actualizada.');
+  }
+
+  public function destroy(Promotion $promotion)
+  {
+    $promotion->load('details');
+    $promotion->details()->delete();
+
+    if ($promotion->image_path && Storage::disk('public')->exists($promotion->image_path)) {
+      Storage::disk('public')->delete($promotion->image_path);
+    }
+
+    $promotion->delete();
+
+    return redirect()->route('admin.promotions.index')->with('status', 'Promoción eliminada.');
+  }
+}
