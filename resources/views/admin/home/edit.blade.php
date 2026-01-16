@@ -145,14 +145,17 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3 text-center">
-                            <img src="{{ $logoUrl }}" alt="Logo" style="max-width: 100%; height: auto;">
+                            <img id="logo_preview" src="{{ $logoUrl }}" alt="Logo" style="max-width: 100%; height: auto;">
                         </div>
 
                         <div class="form-group">
                             <label for="logo">Subir nuevo logo</label>
-                            <input id="logo" type="file" name="logo" class="form-control-file @error('logo') is-invalid @enderror" accept="image/*">
+                            <div class="custom-file">
+                                <input id="logo" type="file" name="logo" class="custom-file-input @error('logo') is-invalid @enderror" accept="image/*">
+                                <label class="custom-file-label" for="logo" id="logo_label">Ningún archivo seleccionado</label>
+                            </div>
                             @error('logo')<div class="text-danger mt-1">{{ $message }}</div>@enderror
-                            <small class="form-text text-muted">PNG/JPG/WEBP, máximo 4MB.</small>
+                            <small class="form-text text-muted">PNG/JPG/WEBP, máximo 4MB. Selecciona el archivo y luego guarda los cambios.</small>
                         </div>
                     </div>
                 </div>
@@ -160,3 +163,31 @@
         </div>
     </form>
 @stop
+
+@push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.getElementById('logo');
+            const label = document.getElementById('logo_label');
+            const preview = document.getElementById('logo_preview');
+
+            if (!input) return;
+
+            input.addEventListener('change', function () {
+                const file = input.files && input.files[0] ? input.files[0] : null;
+
+                if (label) {
+                    label.textContent = file ? file.name : 'Ningún archivo seleccionado';
+                }
+
+                if (file && preview) {
+                    const objectUrl = URL.createObjectURL(file);
+                    preview.src = objectUrl;
+                    preview.onload = function () {
+                        URL.revokeObjectURL(objectUrl);
+                    };
+                }
+            });
+        });
+    </script>
+@endpush

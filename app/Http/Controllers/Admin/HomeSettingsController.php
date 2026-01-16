@@ -23,6 +23,24 @@ class HomeSettingsController
   {
     $settings = HomeSetting::current();
 
+    if (app()->environment('local')) {
+      $incomingLogo = $request->file('logo');
+
+      logger()->info('HomeSettings update request received', [
+        'method' => $request->method(),
+        'content_type' => $request->header('content-type'),
+        'all_files_keys' => array_keys($request->allFiles()),
+        'has_logo' => $request->hasFile('logo'),
+        'logo' => $incomingLogo ? [
+          'original_name' => $incomingLogo->getClientOriginalName(),
+          'mime' => $incomingLogo->getClientMimeType(),
+          'size' => $incomingLogo->getSize(),
+          'error' => $incomingLogo->getError(),
+          'is_valid' => $incomingLogo->isValid(),
+        ] : null,
+      ]);
+    }
+
     $validated = $request->validate([
       'site_title' => ['nullable', 'string', 'max:255'],
       'nav_services' => ['nullable', 'string', 'max:255'],
@@ -44,8 +62,16 @@ class HomeSettingsController
       'logo' => ['nullable', 'file', 'image', 'max:4096'],
     ]);
 
-    if ($request->hasFile('logo')) {
-      $newPath = $request->file('logo')->store('home', 'public');
+    $logoFile = $request->file('logo');
+
+    if ($logoFile && !$logoFile->isValid()) {
+      return back()
+        ->withErrors(['logo' => 'No se pudo subir el archivo. Verifica el tamaño máximo permitido por el servidor y vuelve a intentar.'])
+        ->withInput();
+    }
+
+    if ($logoFile) {
+      $newPath = $logoFile->store('home', 'public');
 
       if ($settings->logo_path && Storage::disk('public')->exists($settings->logo_path)) {
         Storage::disk('public')->delete($settings->logo_path);
