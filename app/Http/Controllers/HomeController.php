@@ -15,8 +15,10 @@ class HomeController
   {
     $settings = HomeSetting::current();
 
+    $publicBaseUrl = rtrim((string) config('filesystems.disks.public.url', asset('storage')), '/');
+
     $logoUrl = $settings->logo_path
-      ? asset('storage/' . $settings->logo_path)
+      ? $publicBaseUrl . '/' . ltrim($settings->logo_path, '/')
       : asset('images/TextilOne.png');
 
     $services = Schema::hasTable((new HomeService())->getTable())

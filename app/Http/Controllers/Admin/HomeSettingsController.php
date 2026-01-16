@@ -13,8 +13,10 @@ class HomeSettingsController
   {
     $settings = HomeSetting::current();
 
+    $publicBaseUrl = rtrim((string) config('filesystems.disks.public.url', asset('storage')), '/');
+
     $logoUrl = $settings->logo_path
-      ? asset('storage/' . $settings->logo_path)
+      ? $publicBaseUrl . '/' . ltrim($settings->logo_path, '/')
       : asset('images/TextilOne.png');
 
     return view('admin.home.edit', compact('settings', 'logoUrl'));
@@ -49,6 +51,13 @@ class HomeSettingsController
 
     $logoFile = $request->file('logo');
 
+    if (!$logoFile && str_contains((string) $request->header('content-type'), 'multipart/form-data')) {
+      logger()->warning('HomeSettings update received multipart request without logo file', [
+        'request_id' => $requestId,
+        'all_files_keys' => array_keys($request->allFiles()),
+      ]);
+    }
+
     if ($logoFile && !$logoFile->isValid()) {
       return back()
         ->withErrors(['logo' => 'No se pudo subir el archivo. Verifica el tamaño máximo permitido por el servidor y vuelve a intentar.'])
@@ -68,6 +77,11 @@ class HomeSettingsController
         }
 
         $validated['logo_path'] = $newPath;
+
+        logger()->info('HomeSettings logo stored', [
+          'request_id' => $requestId,
+          'path' => $newPath,
+        ]);
       }
 
       $settings->fill($validated)->save();
