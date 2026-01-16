@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\HomeSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class HomeSettingsController
 {
@@ -23,23 +24,7 @@ class HomeSettingsController
   {
     $settings = HomeSetting::current();
 
-    if (app()->environment('local')) {
-      $incomingLogo = $request->file('logo');
-
-      logger()->info('HomeSettings update request received', [
-        'method' => $request->method(),
-        'content_type' => $request->header('content-type'),
-        'all_files_keys' => array_keys($request->allFiles()),
-        'has_logo' => $request->hasFile('logo'),
-        'logo' => $incomingLogo ? [
-          'original_name' => $incomingLogo->getClientOriginalName(),
-          'mime' => $incomingLogo->getClientMimeType(),
-          'size' => $incomingLogo->getSize(),
-          'error' => $incomingLogo->getError(),
-          'is_valid' => $incomingLogo->isValid(),
-        ] : null,
-      ]);
-    }
+    $requestId = (string) Str::uuid();
 
     $validated = $request->validate([
       'site_title' => ['nullable', 'string', 'max:255'],
@@ -70,17 +55,45 @@ class HomeSettingsController
         ->withInput();
     }
 
-    if ($logoFile) {
-      $newPath = $logoFile->store('home', 'public');
+    try {
+      if ($logoFile) {
+        $newPath = $logoFile->store('home', 'public');
 
-      if ($settings->logo_path && Storage::disk('public')->exists($settings->logo_path)) {
-        Storage::disk('public')->delete($settings->logo_path);
+        if (!$newPath) {
+          throw new \RuntimeException('Store returned empty path');
+        }
+
+        if ($settings->logo_path && Storage::disk('public')->exists($settings->logo_path)) {
+          Storage::disk('public')->delete($settings->logo_path);
+        }
+
+        $validated['logo_path'] = $newPath;
       }
 
-      $validated['logo_path'] = $newPath;
-    }
+      $settings->fill($validated)->save();
+    } catch (\Throwable $e) {
+      logger()->error('HomeSettings update failed', [
+        'request_id' => $requestId,
+        'method' => $request->method(),
+        'content_type' => $request->header('content-type'),
+        'has_logo' => (bool) $logoFile,
+        'logo' => $logoFile ? [
+          'original_name' => $logoFile->getClientOriginalName(),
+          'mime' => $logoFile->getClientMimeType(),
+          'size' => $logoFile->getSize(),
+          'error' => $logoFile->getError(),
+          'is_valid' => $logoFile->isValid(),
+        ] : null,
+        'exception' => get_class($e),
+        'message' => $e->getMessage(),
+      ]);
 
-    $settings->fill($validated)->save();
+      report($e);
+
+      return back()
+        ->withErrors(['logo' => "No se pudo guardar el logo. Código: {$requestId}"])
+        ->withInput();
+    }
 
     return redirect()
       ->route('admin.home.edit')
