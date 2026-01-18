@@ -436,8 +436,8 @@
        
         .product-gallery {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
         }
        
         .product-card {
@@ -451,12 +451,24 @@
         }
        
         .product-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             background: rgba(255, 255, 255, 0.08);
+        }
+
+        .product-media {
+            appearance: none;
+            background: transparent;
+            border: 0;
+            padding: 0;
+            width: 100%;
+            display: block;
+            text-align: left;
+            cursor: pointer;
         }
        
         .product-image {
-            height: 180px;
+            position: relative;
+            aspect-ratio: 4 / 3;
             background-color: rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
@@ -464,23 +476,95 @@
             color: #ffffff;
             font-size: 16px;
             font-weight: 600;
+            padding: 10px;
         }
-       
-        .product-info {
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .product-caption {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%);
+        }
+
+        /* Product lightbox */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: grid;
+            place-items: center;
             padding: 20px;
         }
-       
-        .product-info h3 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #ffffff;
-            text-transform: uppercase;
+
+        .lightbox[hidden] {
+            display: none;
         }
-       
-        .product-info p {
-            font-size: 16px;
-            color: #cccccc;
+
+        .lightbox-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+        }
+
+        .lightbox-dialog {
+            position: relative;
+            z-index: 2;
+            width: min(980px, 92vw);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.35);
+            color: #ffffff;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 0, 0, 0.35);
+        }
+
+        .lightbox-image {
+            display: block;
+            width: 100%;
+            max-height: 78vh;
+            object-fit: contain;
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        .lightbox-title {
+            padding: 12px 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #ffffff;
         }
        
         .guarantee {
@@ -613,10 +697,6 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .product-gallery {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
             .carousel-btn.prev {
                 left: -16px;
             }
@@ -629,10 +709,6 @@
         @media (min-width: 1024px) {
             .services {
                 grid-template-columns: repeat(3, 1fr);
-            }
-
-            .product-gallery {
-                grid-template-columns: repeat(4, 1fr);
             }
 
         }
@@ -856,17 +932,21 @@
                 <div class="product-gallery">
                     @foreach ($products as $product)
                         <div class="product-card">
-                            <div class="product-image">
-                                @if ($product->image_path)
-                                    <img src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->title }}" style="width:100%;height:100%;object-fit:cover;">
-                                @else
-                                    {{ $product->image_text ?: 'Producto' }}
-                                @endif
-                            </div>
-                            <div class="product-info">
-                                <h3>{{ $product->title }}</h3>
-                                <p>{{ $product->subtitle }}</p>
-                            </div>
+                            <button
+                                type="button"
+                                class="product-media"
+                                data-product-src="{{ $product->image_path ? asset('storage/' . $product->image_path) : '' }}"
+                                data-product-title="{{ $product->title }}"
+                                aria-label="Ver {{ $product->title }}">
+                                <div class="product-image">
+                                    @if ($product->image_path)
+                                        <img src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->title }}">
+                                    @else
+                                        {{ $product->image_text ?: 'Producto' }}
+                                    @endif
+                                    <div class="product-caption">{{ $product->title }}</div>
+                                </div>
+                            </button>
                         </div>
                     @endforeach
                 </div>
@@ -949,6 +1029,15 @@
         </div>
     </div>
 
+    <div class="lightbox" id="product-lightbox" hidden aria-hidden="true">
+        <div class="lightbox-backdrop" data-lightbox-close></div>
+        <div class="lightbox-dialog" role="dialog" aria-modal="true" aria-label="Vista previa de producto">
+            <button type="button" class="lightbox-close" aria-label="Cerrar" data-lightbox-close>×</button>
+            <img class="lightbox-image" alt="">
+            <div class="lightbox-title"></div>
+        </div>
+    </div>
+
     <script>
         (function () {
             const wraps = document.querySelectorAll('.promo-carousel-wrap');
@@ -1003,6 +1092,70 @@
             };
 
             wraps.forEach(initCarousel);
+        })();
+    </script>
+    <script>
+        (function () {
+            const lightbox = document.getElementById('product-lightbox');
+            if (!lightbox) return;
+
+            const img = lightbox.querySelector('.lightbox-image');
+            const titleEl = lightbox.querySelector('.lightbox-title');
+            const closeEls = lightbox.querySelectorAll('[data-lightbox-close]');
+
+            let lastActive = null;
+
+            const open = (src, title) => {
+                if (!src) return;
+
+                lastActive = document.activeElement;
+                img.src = src;
+                img.alt = title || 'Producto';
+                titleEl.textContent = title || '';
+
+                lightbox.hidden = false;
+                lightbox.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+
+                const closeBtn = lightbox.querySelector('.lightbox-close');
+                if (closeBtn) closeBtn.focus();
+            };
+
+            const close = () => {
+                lightbox.hidden = true;
+                lightbox.setAttribute('aria-hidden', 'true');
+                img.src = '';
+                img.alt = '';
+                titleEl.textContent = '';
+                document.body.style.overflow = '';
+
+                if (lastActive && typeof lastActive.focus === 'function') {
+                    lastActive.focus();
+                }
+                lastActive = null;
+            };
+
+            document.addEventListener('click', (e) => {
+                const trigger = e.target.closest('[data-product-src]');
+                if (!trigger) return;
+
+                const src = trigger.getAttribute('data-product-src') || '';
+                const title = trigger.getAttribute('data-product-title') || '';
+                if (!src) return;
+
+                e.preventDefault();
+                open(src, title);
+            });
+
+            closeEls.forEach((el) => el.addEventListener('click', close));
+
+            document.addEventListener('keydown', (e) => {
+                if (lightbox.hidden) return;
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    close();
+                }
+            });
         })();
     </script>
 </body>
