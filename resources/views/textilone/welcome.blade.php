@@ -691,6 +691,20 @@
             background: linear-gradient(transparent 60%, rgba(255, 0, 0, 0.3) 40%);
             padding: 0 3px;
         }
+
+        /* Promotions helper text (smaller, subtle) */
+        .promotions-hint {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0;
+            text-transform: none;
+            color: #d1d5db;
+            margin-left: 10px;
+        }
+
+        .promotions .section-title {
+            flex-wrap: wrap;
+        }
        
         .admin-link {
             display: inline-flex;
@@ -765,6 +779,36 @@
 
             .carousel-btn.next {
                 right: 4px;
+            }
+
+            /* Promotions: keep arrows slightly below the card on mobile */
+            .promo-carousel-wrap {
+                padding-bottom: 34px;
+            }
+
+            .promo-carousel {
+                padding-bottom: 14px;
+            }
+
+            .promo-carousel-wrap .carousel-btn {
+                top: auto;
+                bottom: 6px;
+                transform: none;
+            }
+
+            .promo-carousel-wrap .carousel-btn:hover {
+                transform: scale(1.03);
+            }
+
+            .promo-carousel-wrap .carousel-btn:disabled:hover {
+                transform: none;
+            }
+
+            .promotions-hint {
+                display: block;
+                margin-left: 0;
+                margin-top: 6px;
+                width: 100%;
             }
 
             .guarantee {
@@ -908,7 +952,8 @@
             <section class="section promotions" id="promotions">
                 <h2 class="section-title">
                     <i class="material-icons">local_offer</i>
-                    {{ $settings->promotions_title ?: 'Promociones Exclusivas' }}
+                    {{ $settings->promotions_title ?: 'Promociones Exclusivas' }}  
+                    <span class="highlight promotions-hint">{{ $settings->promotions_subtitle ?: '¡Dar click a las imagenes para ver más!' }}</span>
                 </h2>
                 @foreach ($promotions as $groupIndex => $group)
                     <div class="promo-carousel-wrap" data-carousel="promo-{{ $groupIndex }}">
