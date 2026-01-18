@@ -360,8 +360,8 @@
         }
        
         .promo-image {
-            width: 120px;
-            height: 120px;
+            width: 144px;
+            height: 144px;
             border-radius: 12px;
             object-fit: cover;
             margin-right: 0;
@@ -370,12 +370,32 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+        }
+
+        .promo-image-btn {
+            appearance: none;
+            border: 0;
+            padding: 0;
+            background: transparent;
+            cursor: zoom-in;
+        }
+
+        .promo-image-btn:focus-visible {
+            outline: 2px solid rgba(255, 0, 0, 0.65);
+            outline-offset: 3px;
         }
        
         .promo-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.25s ease;
+        }
+
+        .promo-image-btn:hover img {
+            transform: scale(1.04);
         }
        
         .promo-image i {
@@ -697,6 +717,12 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
+            /* Promotions: give images more prominence on desktop */
+            .promo-image {
+                width: 200px;
+                height: 160px;
+            }
+
             .carousel-btn.prev {
                 left: -16px;
             }
@@ -895,15 +921,26 @@
                                 @foreach ($group as $promo)
                                     <div class="promo-card">
                                         <div class="promo-header">
-                                            <div class="promo-image">
-                                                @if ($promo->image_media_id)
-                                                    <img src="{{ route('media.show', $promo->image_media_id) }}" alt="{{ $promo->title }}">
-                                                @elseif ($promo->image_path)
-                                                    <img src="{{ asset('storage/' . $promo->image_path) }}" alt="{{ $promo->title }}">
-                                                @else
+                                            @php
+                                                $promoImageUrl = $promo->image_media_id
+                                                    ? route('media.show', $promo->image_media_id)
+                                                    : ($promo->image_path ? asset('storage/' . $promo->image_path) : '');
+                                            @endphp
+
+                                            @if ($promoImageUrl)
+                                                <button
+                                                    type="button"
+                                                    class="promo-image promo-image-btn"
+                                                    data-lightbox-src="{{ $promoImageUrl }}"
+                                                    data-lightbox-title="{{ $promo->title }}"
+                                                    aria-label="Ver imagen de {{ $promo->title }}">
+                                                    <img src="{{ $promoImageUrl }}" alt="{{ $promo->title }}">
+                                                </button>
+                                            @else
+                                                <div class="promo-image" aria-hidden="true">
                                                     <i class="material-icons">image</i>
-                                                @endif
-                                            </div>
+                                                </div>
+                                            @endif
                                             <div class="promo-content">
                                                 <h3><i class="material-icons">{{ $promo->badge_icon ?: 'star' }}</i> {{ $promo->title }}</h3>
                                                 <p>{{ $promo->description }}</p>
@@ -1039,7 +1076,7 @@
 
     <div class="lightbox" id="product-lightbox" hidden aria-hidden="true">
         <div class="lightbox-backdrop" data-lightbox-close></div>
-        <div class="lightbox-dialog" role="dialog" aria-modal="true" aria-label="Vista previa de producto">
+        <div class="lightbox-dialog" role="dialog" aria-modal="true" aria-label="Vista previa de imagen">
             <button type="button" class="lightbox-close" aria-label="Cerrar" data-lightbox-close>×</button>
             <img class="lightbox-image" alt="">
             <div class="lightbox-title"></div>
@@ -1118,7 +1155,7 @@
 
                 lastActive = document.activeElement;
                 img.src = src;
-                img.alt = title || 'Producto';
+                img.alt = title || 'Imagen';
                 titleEl.textContent = title || '';
 
                 lightbox.hidden = false;
@@ -1144,11 +1181,11 @@
             };
 
             document.addEventListener('click', (e) => {
-                const trigger = e.target.closest('[data-product-src]');
+                const trigger = e.target.closest('[data-lightbox-src], [data-product-src]');
                 if (!trigger) return;
 
-                const src = trigger.getAttribute('data-product-src') || '';
-                const title = trigger.getAttribute('data-product-title') || '';
+                const src = trigger.getAttribute('data-lightbox-src') || trigger.getAttribute('data-product-src') || '';
+                const title = trigger.getAttribute('data-lightbox-title') || trigger.getAttribute('data-product-title') || '';
                 if (!src) return;
 
                 e.preventDefault();
