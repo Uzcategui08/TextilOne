@@ -14,20 +14,41 @@ class MediaFileController
       return response('', 304)->header('ETag', $etag);
     }
 
-    $response = response($mediaFile->data ?? '');
+    $headers = [
+      'Content-Type' => $mediaFile->mime_type ?: 'application/octet-stream',
+      // Cache for a week (safe for public assets; updated assets get new id).
+      'Cache-Control' => 'public, max-age=604800',
+    ];
 
-    $response->headers->set('Content-Type', $mediaFile->mime_type ?: 'application/octet-stream');
     if ($mediaFile->size) {
-      $response->headers->set('Content-Length', (string) $mediaFile->size);
+      $headers['Content-Length'] = (string) $mediaFile->size;
     }
 
     if ($etag) {
-      $response->headers->set('ETag', $etag);
+      $headers['ETag'] = $etag;
     }
 
-    // Cache for a week (safe for public assets; updated assets get new id).
-    $response->headers->set('Cache-Control', 'public, max-age=604800');
+    $data = $mediaFile->data;
 
-    return $response;
+    // PostgreSQL may return bytea columns as stream resources.
+    if (is_resource($data)) {
+      return response()->stream(function () use ($data) {
+        try {
+          @rewind($data);
+        } catch (\Throwable $e) {
+          // Ignore; we'll still attempt to read.
+        }
+
+        while (!feof($data)) {
+          $chunk = fread($data, 8192);
+          if ($chunk === false) {
+            break;
+          }
+          echo $chunk;
+        }
+      }, 200, $headers);
+    }
+
+    return response($data ?? '', 200, $headers);
   }
 }

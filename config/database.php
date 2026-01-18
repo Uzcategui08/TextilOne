@@ -96,6 +96,11 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            'options' => extension_loaded('pdo_pgsql') ? [
+                // Required for storing raw binary data (bytea) safely.
+                // With emulated prepares, PDO may inline bytes into SQL causing UTF-8 errors.
+                \PDO::ATTR_EMULATE_PREPARES => false,
+            ] : [],
         ],
 
         'sqlsrv' => [
@@ -148,7 +153,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-database-'),
+            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')) . '-database-'),
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 

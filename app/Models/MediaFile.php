@@ -23,28 +23,40 @@ class MediaFile extends Model
 
   public static function fromUploadedFile(UploadedFile $file): self
   {
-    $data = file_get_contents($file->getRealPath());
-    if ($data === false) {
-      throw new \RuntimeException('No se pudo leer el archivo subido.');
+    $path = $file->getRealPath();
+    if (!$path) {
+      throw new \RuntimeException('No se pudo leer el archivo subido (ruta temporal inválida).');
+    }
+
+    // Important for PostgreSQL (bytea): send bytes as a stream so PDO binds as LOB.
+    $stream = fopen($path, 'rb');
+    if ($stream === false) {
+      throw new \RuntimeException('No se pudo abrir el archivo subido para lectura.');
     }
 
     $originalName = (string) $file->getClientOriginalName();
     $mime = (string) ($file->getClientMimeType() ?: $file->getMimeType() ?: 'application/octet-stream');
-    $size = (int) ($file->getSize() ?? strlen($data));
-    $sha256 = hash('sha256', $data);
+    $size = (int) ($file->getSize() ?? (is_file($path) ? filesize($path) : 0));
+    $sha256 = (string) (hash_file('sha256', $path) ?: '');
 
     $extension = strtolower((string) $file->getClientOriginalExtension());
     $base = Str::slug(pathinfo($originalName, PATHINFO_FILENAME));
     $base = $base !== '' ? $base : 'upload';
     $filename = $extension !== '' ? ($base . '.' . $extension) : $base;
 
-    return self::query()->create([
-      'original_name' => $originalName,
-      'filename' => $filename,
-      'mime_type' => $mime,
-      'size' => $size,
-      'sha256' => $sha256,
-      'data' => $data,
-    ]);
+    try {
+      return self::query()->create([
+        'original_name' => $originalName,
+        'filename' => $filename,
+        'mime_type' => $mime,
+        'size' => $size,
+        'sha256' => $sha256,
+        'data' => $stream,
+      ]);
+    } finally {
+      if (is_resource($stream)) {
+        fclose($stream);
+      }
+    }
   }
 }
