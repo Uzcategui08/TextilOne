@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Company;
+use App\Models\MediaFile;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class CompanyController
 {
@@ -30,7 +30,9 @@ class CompanyController
     ]);
 
     if ($request->hasFile('logo')) {
-      $validated['logo_path'] = $request->file('logo')->store('companies', 'public');
+      $media = MediaFile::fromUploadedFile($request->file('logo'));
+      $validated['logo_media_id'] = $media->id;
+      $validated['logo_path'] = null;
     }
 
     $validated['position'] = $validated['position'] ?? (Company::query()->max('position') + 1);
@@ -43,7 +45,9 @@ class CompanyController
 
   public function edit(Company $company)
   {
-    $logoUrl = $company->logo_path ? asset('storage/' . $company->logo_path) : null;
+    $logoUrl = $company->logo_media_id
+      ? route('media.show', $company->logo_media_id)
+      : ($company->logo_path ? asset('storage/' . $company->logo_path) : null);
 
     return view('admin.companies.edit', compact('company', 'logoUrl'));
   }
@@ -58,13 +62,14 @@ class CompanyController
     ]);
 
     if ($request->hasFile('logo')) {
-      $newPath = $request->file('logo')->store('companies', 'public');
+      $media = MediaFile::fromUploadedFile($request->file('logo'));
 
-      if ($company->logo_path && Storage::disk('public')->exists($company->logo_path)) {
-        Storage::disk('public')->delete($company->logo_path);
+      if ($company->logo_media_id) {
+        MediaFile::query()->whereKey($company->logo_media_id)->delete();
       }
 
-      $validated['logo_path'] = $newPath;
+      $validated['logo_media_id'] = $media->id;
+      $validated['logo_path'] = null;
     }
 
     $validated['is_active'] = (bool) ($validated['is_active'] ?? false);
@@ -76,8 +81,8 @@ class CompanyController
 
   public function destroy(Company $company)
   {
-    if ($company->logo_path && Storage::disk('public')->exists($company->logo_path)) {
-      Storage::disk('public')->delete($company->logo_path);
+    if ($company->logo_media_id) {
+      MediaFile::query()->whereKey($company->logo_media_id)->delete();
     }
 
     $company->delete();

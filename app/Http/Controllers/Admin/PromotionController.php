@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\MediaFile;
 use App\Models\Promotion;
 use App\Models\PromotionDetail;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class PromotionController
 {
@@ -41,7 +41,9 @@ class PromotionController
     ]);
 
     if ($request->hasFile('image')) {
-      $validated['image_path'] = $request->file('image')->store('promotions', 'public');
+      $media = MediaFile::fromUploadedFile($request->file('image'));
+      $validated['image_media_id'] = $media->id;
+      $validated['image_path'] = null;
     }
 
     $validated['position'] = $validated['position'] ?? (Promotion::query()
@@ -72,7 +74,9 @@ class PromotionController
   public function edit(Promotion $promotion)
   {
     $promotion->load('details');
-    $imageUrl = $promotion->image_path ? asset('storage/' . $promotion->image_path) : null;
+    $imageUrl = $promotion->image_media_id
+      ? route('media.show', $promotion->image_media_id)
+      : ($promotion->image_path ? asset('storage/' . $promotion->image_path) : null);
 
     return view('admin.promotions.edit', compact('promotion', 'imageUrl'));
   }
@@ -95,13 +99,14 @@ class PromotionController
     ]);
 
     if ($request->hasFile('image')) {
-      $newPath = $request->file('image')->store('promotions', 'public');
+      $media = MediaFile::fromUploadedFile($request->file('image'));
 
-      if ($promotion->image_path && Storage::disk('public')->exists($promotion->image_path)) {
-        Storage::disk('public')->delete($promotion->image_path);
+      if ($promotion->image_media_id) {
+        MediaFile::query()->whereKey($promotion->image_media_id)->delete();
       }
 
-      $validated['image_path'] = $newPath;
+      $validated['image_media_id'] = $media->id;
+      $validated['image_path'] = null;
     }
 
     $validated['is_active'] = (bool) ($validated['is_active'] ?? false);
@@ -147,8 +152,8 @@ class PromotionController
     $promotion->load('details');
     $promotion->details()->delete();
 
-    if ($promotion->image_path && Storage::disk('public')->exists($promotion->image_path)) {
-      Storage::disk('public')->delete($promotion->image_path);
+    if ($promotion->image_media_id) {
+      MediaFile::query()->whereKey($promotion->image_media_id)->delete();
     }
 
     $promotion->delete();

@@ -32,7 +32,9 @@
                         <tr>
                             <td>{{ $company->id }}</td>
                             <td>
-                                @if ($company->logo_path)
+                                @if ($company->logo_media_id)
+                                    <img src="{{ route('media.show', $company->logo_media_id) }}" alt="{{ $company->name }}" style="height: 28px; width: auto; max-width: 140px; object-fit: contain;">
+                                @elseif ($company->logo_path)
                                     <img src="{{ asset('storage/' . $company->logo_path) }}" alt="{{ $company->name }}" style="height: 28px; width: auto; max-width: 140px; object-fit: contain;">
                                 @else
                                     <span class="text-muted">—</span>

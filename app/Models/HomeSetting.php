@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Schema;
 
 class HomeSetting extends Model
@@ -10,6 +11,7 @@ class HomeSetting extends Model
   protected $fillable = [
     'site_title',
     'logo_path',
+    'logo_media_id',
     'nav_services',
     'nav_promotions',
     'nav_contact',
@@ -36,5 +38,10 @@ class HomeSetting extends Model
     }
 
     return self::query()->first() ?? self::query()->create([]);
+  }
+
+  public function logoMedia(): BelongsTo
+  {
+    return $this->belongsTo(MediaFile::class, 'logo_media_id');
   }
 }

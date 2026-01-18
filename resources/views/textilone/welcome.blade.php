@@ -896,7 +896,9 @@
                                     <div class="promo-card">
                                         <div class="promo-header">
                                             <div class="promo-image">
-                                                @if ($promo->image_path)
+                                                @if ($promo->image_media_id)
+                                                    <img src="{{ route('media.show', $promo->image_media_id) }}" alt="{{ $promo->title }}">
+                                                @elseif ($promo->image_path)
                                                     <img src="{{ asset('storage/' . $promo->image_path) }}" alt="{{ $promo->title }}">
                                                 @else
                                                     <i class="material-icons">image</i>
@@ -935,11 +937,13 @@
                             <button
                                 type="button"
                                 class="product-media"
-                                data-product-src="{{ $product->image_path ? asset('storage/' . $product->image_path) : '' }}"
+                                data-product-src="{{ $product->image_media_id ? route('media.show', $product->image_media_id) : ($product->image_path ? asset('storage/' . $product->image_path) : '') }}"
                                 data-product-title="{{ $product->title }}"
                                 aria-label="Ver {{ $product->title }}">
                                 <div class="product-image">
-                                    @if ($product->image_path)
+                                    @if ($product->image_media_id)
+                                        <img src="{{ route('media.show', $product->image_media_id) }}" alt="{{ $product->title }}">
+                                    @elseif ($product->image_path)
                                         <img src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->title }}">
                                     @else
                                         {{ $product->image_text ?: 'Producto' }}
@@ -965,7 +969,9 @@
                             @foreach ($companies as $company)
                                 <div class="company-item" role="listitem">
                                     <div class="company-logo">
-                                        @if ($company->logo_path)
+                                        @if ($company->logo_media_id)
+                                            <img src="{{ route('media.show', $company->logo_media_id) }}" alt="{{ $company->name }}">
+                                        @elseif ($company->logo_path)
                                             <img src="{{ asset('storage/' . $company->logo_path) }}" alt="{{ $company->name }}">
                                         @else
                                             <span class="company-name">{{ $company->name }}</span>
@@ -977,7 +983,9 @@
                             @foreach ($companies as $company)
                                 <div class="company-item" aria-hidden="true">
                                     <div class="company-logo">
-                                        @if ($company->logo_path)
+                                        @if ($company->logo_media_id)
+                                            <img src="{{ route('media.show', $company->logo_media_id) }}" alt="{{ $company->name }}">
+                                        @elseif ($company->logo_path)
                                             <img src="{{ asset('storage/' . $company->logo_path) }}" alt="{{ $company->name }}">
                                         @else
                                             <span class="company-name">{{ $company->name }}</span>

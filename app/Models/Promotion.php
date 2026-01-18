@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Promotion extends Model
@@ -14,6 +15,7 @@ class Promotion extends Model
     'title',
     'description',
     'image_path',
+    'image_media_id',
     'badge_icon',
   ];
 
@@ -26,5 +28,10 @@ class Promotion extends Model
   public function details(): HasMany
   {
     return $this->hasMany(PromotionDetail::class)->orderBy('position');
+  }
+
+  public function imageMedia(): BelongsTo
+  {
+    return $this->belongsTo(MediaFile::class, 'image_media_id');
   }
 }

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\HomeSetting;
+use App\Models\MediaFile;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class HomeSettingsController
@@ -15,9 +15,11 @@ class HomeSettingsController
 
     $publicBaseUrl = rtrim((string) config('filesystems.disks.public.url', asset('storage')), '/');
 
-    $logoUrl = $settings->logo_path
-      ? $publicBaseUrl . '/' . ltrim($settings->logo_path, '/')
-      : asset('images/TextilOne.png');
+    $logoUrl = $settings->logo_media_id
+      ? route('media.show', $settings->logo_media_id)
+      : ($settings->logo_path
+        ? $publicBaseUrl . '/' . ltrim($settings->logo_path, '/')
+        : asset('images/TextilOne.png'));
 
     return view('admin.home.edit', compact('settings', 'logoUrl'));
   }
@@ -66,21 +68,19 @@ class HomeSettingsController
 
     try {
       if ($logoFile) {
-        $newPath = $logoFile->store('home', 'public');
+        $media = MediaFile::fromUploadedFile($logoFile);
 
-        if (!$newPath) {
-          throw new \RuntimeException('Store returned empty path');
+        if ($settings->logo_media_id) {
+          MediaFile::query()->whereKey($settings->logo_media_id)->delete();
         }
 
-        if ($settings->logo_path && Storage::disk('public')->exists($settings->logo_path)) {
-          Storage::disk('public')->delete($settings->logo_path);
-        }
-
-        $validated['logo_path'] = $newPath;
+        // Keep old path as fallback, but new uploads will live in DB.
+        $validated['logo_media_id'] = $media->id;
+        $validated['logo_path'] = null;
 
         logger()->info('HomeSettings logo stored', [
           'request_id' => $requestId,
-          'path' => $newPath,
+          'media_id' => $media->id,
         ]);
       }
 

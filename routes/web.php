@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MediaFileController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\HomeSettingsController;
 use App\Http\Controllers\Admin\HomeServiceController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\Admin\SocialLinkController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class);
+
+Route::get('/media/{mediaFile}', [MediaFileController::class, 'show'])->name('media.show');
 
 Route::get('/dashboard', function () {
     return redirect()->route('admin.dashboard');

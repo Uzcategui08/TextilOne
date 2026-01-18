@@ -18,9 +18,11 @@ class HomeController
 
     $publicBaseUrl = rtrim((string) config('filesystems.disks.public.url', asset('storage')), '/');
 
-    $logoUrl = $settings->logo_path
-      ? $publicBaseUrl . '/' . ltrim($settings->logo_path, '/')
-      : asset('images/TextilOne.png');
+    $logoUrl = $settings->logo_media_id
+      ? route('media.show', $settings->logo_media_id)
+      : ($settings->logo_path
+        ? $publicBaseUrl . '/' . ltrim($settings->logo_path, '/')
+        : asset('images/TextilOne.png'));
 
     $services = Schema::hasTable((new HomeService())->getTable())
       ? HomeService::query()->where('is_active', true)->orderBy('position')->get()

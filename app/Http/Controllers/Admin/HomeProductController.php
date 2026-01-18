@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\HomeProduct;
+use App\Models\MediaFile;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class HomeProductController
 {
@@ -32,7 +32,9 @@ class HomeProductController
     ]);
 
     if ($request->hasFile('image')) {
-      $validated['image_path'] = $request->file('image')->store('home-products', 'public');
+      $media = MediaFile::fromUploadedFile($request->file('image'));
+      $validated['image_media_id'] = $media->id;
+      $validated['image_path'] = null;
     }
 
     $validated['position'] = $validated['position'] ?? (HomeProduct::query()->max('position') + 1);
@@ -45,7 +47,9 @@ class HomeProductController
 
   public function edit(HomeProduct $product)
   {
-    $imageUrl = $product->image_path ? asset('storage/' . $product->image_path) : null;
+    $imageUrl = $product->image_media_id
+      ? route('media.show', $product->image_media_id)
+      : ($product->image_path ? asset('storage/' . $product->image_path) : null);
 
     return view('admin.products.edit', compact('product', 'imageUrl'));
   }
@@ -62,13 +66,14 @@ class HomeProductController
     ]);
 
     if ($request->hasFile('image')) {
-      $newPath = $request->file('image')->store('home-products', 'public');
+      $media = MediaFile::fromUploadedFile($request->file('image'));
 
-      if ($product->image_path && Storage::disk('public')->exists($product->image_path)) {
-        Storage::disk('public')->delete($product->image_path);
+      if ($product->image_media_id) {
+        MediaFile::query()->whereKey($product->image_media_id)->delete();
       }
 
-      $validated['image_path'] = $newPath;
+      $validated['image_media_id'] = $media->id;
+      $validated['image_path'] = null;
     }
 
     $validated['is_active'] = (bool) ($validated['is_active'] ?? false);
@@ -80,8 +85,8 @@ class HomeProductController
 
   public function destroy(HomeProduct $product)
   {
-    if ($product->image_path && Storage::disk('public')->exists($product->image_path)) {
-      Storage::disk('public')->delete($product->image_path);
+    if ($product->image_media_id) {
+      MediaFile::query()->whereKey($product->image_media_id)->delete();
     }
 
     $product->delete();

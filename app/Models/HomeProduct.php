@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class HomeProduct extends Model
 {
@@ -10,6 +11,7 @@ class HomeProduct extends Model
     'title',
     'subtitle',
     'image_path',
+    'image_media_id',
     'image_text',
     'position',
     'is_active',
@@ -19,4 +21,9 @@ class HomeProduct extends Model
     'is_active' => 'bool',
     'position' => 'int',
   ];
+
+  public function imageMedia(): BelongsTo
+  {
+    return $this->belongsTo(MediaFile::class, 'image_media_id');
+  }
 }
