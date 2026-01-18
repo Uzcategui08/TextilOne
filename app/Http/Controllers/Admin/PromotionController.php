@@ -30,15 +30,18 @@ class PromotionController
       'carousel_group' => ['required', 'integer', 'min:0'],
       'position' => ['nullable', 'integer', 'min:0'],
       'is_active' => ['nullable', 'boolean'],
-      'title' => ['required', 'string', 'max:255'],
+      'title' => ['nullable', 'string', 'max:255'],
       'description' => ['required', 'string', 'max:2000'],
       'badge_icon' => ['nullable', 'string', 'max:255'],
       'image' => ['nullable', 'file', 'image', 'max:4096'],
+      'apply_title_to_group' => ['nullable', 'boolean'],
       'details' => ['nullable', 'array'],
       'details.*.icon' => ['nullable', 'string', 'max:255'],
       'details.*.text' => ['nullable', 'string', 'max:255'],
       'details.*.position' => ['nullable', 'integer', 'min:0'],
     ]);
+
+    $validated['title'] = trim((string) ($validated['title'] ?? ''));
 
     if ($request->hasFile('image')) {
       $media = MediaFile::fromUploadedFile($request->file('image'));
@@ -51,7 +54,16 @@ class PromotionController
       ->max('position') + 1);
     $validated['is_active'] = (bool) ($validated['is_active'] ?? false);
 
+    $applyTitleToGroup = (bool) ($validated['apply_title_to_group'] ?? false);
+    unset($validated['apply_title_to_group']);
+
     $promotion = Promotion::query()->create($validated);
+
+    if ($applyTitleToGroup) {
+      Promotion::query()
+        ->where('carousel_group', $promotion->carousel_group)
+        ->update(['title' => $promotion->title]);
+    }
 
     $details = $validated['details'] ?? [];
     foreach ($details as $detail) {
@@ -87,16 +99,19 @@ class PromotionController
       'carousel_group' => ['required', 'integer', 'min:0'],
       'position' => ['nullable', 'integer', 'min:0'],
       'is_active' => ['nullable', 'boolean'],
-      'title' => ['required', 'string', 'max:255'],
+      'title' => ['nullable', 'string', 'max:255'],
       'description' => ['required', 'string', 'max:2000'],
       'badge_icon' => ['nullable', 'string', 'max:255'],
       'image' => ['nullable', 'file', 'image', 'max:4096'],
+      'apply_title_to_group' => ['nullable', 'boolean'],
       'details' => ['nullable', 'array'],
       'details.*.id' => ['nullable', 'integer'],
       'details.*.icon' => ['nullable', 'string', 'max:255'],
       'details.*.text' => ['nullable', 'string', 'max:255'],
       'details.*.position' => ['nullable', 'integer', 'min:0'],
     ]);
+
+    $validated['title'] = trim((string) ($validated['title'] ?? ''));
 
     if ($request->hasFile('image')) {
       $media = MediaFile::fromUploadedFile($request->file('image'));
@@ -111,7 +126,16 @@ class PromotionController
 
     $validated['is_active'] = (bool) ($validated['is_active'] ?? false);
 
+    $applyTitleToGroup = (bool) ($validated['apply_title_to_group'] ?? false);
+    unset($validated['apply_title_to_group']);
+
     $promotion->fill($validated)->save();
+
+    if ($applyTitleToGroup) {
+      Promotion::query()
+        ->where('carousel_group', $promotion->carousel_group)
+        ->update(['title' => $promotion->title]);
+    }
 
     $keepIds = [];
     $details = $validated['details'] ?? [];

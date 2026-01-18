@@ -17,8 +17,9 @@
                     <div class="col-md-4">
                         <x-icon-picker
                             name="icon"
-                            label="Icono (Material Icons)"
+                            label="Icono (Material Icons o social)"
                             :value="old('icon', $socialLink->icon)"
+                            help="Puedes usar Material Icons o: facebook, instagram, x"
                         />
                     </div>
                     <div class="form-group col-md-4">

@@ -47,9 +47,17 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="title">Título</label>
+                            <label for="title">Título (opcional)</label>
                             <input id="title" type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $promotion->title) }}">
                             @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <small class="form-text text-muted">Puedes dejar el título en blanco si no aplica. Si marcas la opción de abajo, se copiará este título a todas las promociones del mismo grupo carrusel.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox">
+                                <input id="apply_title_to_group" type="checkbox" name="apply_title_to_group" value="1" class="custom-control-input" {{ old('apply_title_to_group') ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="apply_title_to_group">Aplicar este título a todas las promociones del mismo grupo carrusel</label>
+                            </div>
                         </div>
 
                         <div class="form-group">

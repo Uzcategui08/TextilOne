@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $settings->site_title ?: 'TextilOne' }}</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -739,6 +740,15 @@
             justify-content: center;
             transition: background-color 0.3s, transform 0.3s;
         }
+
+        .social-link i {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .social-link .material-icons {
+            font-size: 20px;
+        }
        
         .social-link:hover {
             background-color: #ff0000;
@@ -1051,6 +1061,9 @@
                                     <div class="promo-card">
                                         <div class="promo-header">
                                             @php
+                                                $promoTitle = trim((string) ($promo->title ?? ''));
+                                                $promoHasTitle = $promoTitle !== '';
+                                                $promoA11yTitle = $promoHasTitle ? $promoTitle : 'Promoción';
                                                 $promoImageUrl = $promo->image_media_id
                                                     ? route('media.show', $promo->image_media_id)
                                                     : ($promo->image_path ? asset('storage/' . $promo->image_path) : '');
@@ -1061,9 +1074,11 @@
                                                     type="button"
                                                     class="promo-image promo-image-btn"
                                                     data-lightbox-src="{{ $promoImageUrl }}"
-                                                    data-lightbox-title="{{ $promo->title }}"
-                                                    aria-label="Ver imagen de {{ $promo->title }}">
-                                                    <img src="{{ $promoImageUrl }}" alt="{{ $promo->title }}">
+                                                    @if ($promoHasTitle)
+                                                        data-lightbox-title="{{ $promoTitle }}"
+                                                    @endif
+                                                    aria-label="Ver imagen de {{ $promoA11yTitle }}">
+                                                    <img src="{{ $promoImageUrl }}" alt="{{ $promoA11yTitle }}">
                                                 </button>
                                             @else
                                                 <div class="promo-image" aria-hidden="true">
@@ -1071,7 +1086,9 @@
                                                 </div>
                                             @endif
                                             <div class="promo-content">
-                                                <h3><i class="material-icons">{{ $promo->badge_icon ?: 'star' }}</i> {{ $promo->title }}</h3>
+                                                @if ($promoHasTitle)
+                                                    <h3><i class="material-icons">{{ $promo->badge_icon ?: 'star' }}</i> {{ $promoTitle }}</h3>
+                                                @endif
                                                 <p>{{ $promo->description }}</p>
                                             </div>
                                         </div>
@@ -1186,8 +1203,19 @@
                 </div>
                 <div class="social-links">
                     @foreach ($socialLinks as $socialLink)
-                        <a href="{{ $socialLink->url }}" class="social-link" target="_blank" rel="noopener noreferrer">
-                            <i class="material-icons">{{ $socialLink->icon }}</i>
+                        @php
+                            $socialIcon = strtolower(trim((string) ($socialLink->icon ?? '')));
+                        @endphp
+                        <a href="{{ $socialLink->url }}" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="{{ $socialIcon ?: 'red social' }}">
+                            @if (in_array($socialIcon, ['facebook', 'facebook-f', 'fb'], true))
+                                <i class="fa-brands fa-facebook-f" aria-hidden="true"></i>
+                            @elseif ($socialIcon === 'instagram')
+                                <i class="fa-brands fa-instagram" aria-hidden="true"></i>
+                            @elseif (in_array($socialIcon, ['x', 'twitter', 'x-twitter'], true))
+                                <i class="fa-brands fa-x-twitter" aria-hidden="true"></i>
+                            @else
+                                <i class="material-icons">{{ $socialLink->icon }}</i>
+                            @endif
                         </a>
                     @endforeach
                 </div>
