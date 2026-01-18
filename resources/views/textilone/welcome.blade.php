@@ -153,6 +153,8 @@
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 20;
         }
        
         .hero h1 {
@@ -188,6 +190,7 @@
         .cta-dropdown {
             position: relative;
             display: inline-block;
+            z-index: 1000;
         }
 
         .cta-dropdown-menu {
@@ -202,7 +205,7 @@
             padding: 8px;
             backdrop-filter: blur(12px);
             box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
-            z-index: 30;
+            z-index: 2000;
         }
 
         .cta-dropdown-menu[hidden] {
