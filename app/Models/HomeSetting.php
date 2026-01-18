@@ -19,6 +19,7 @@ class HomeSetting extends Model
     'hero_subtitle',
     'cta_text',
     'cta_url',
+    'cta_dropdown_items',
     'services_title',
     'promotions_title',
     'products_title',
@@ -28,6 +29,10 @@ class HomeSetting extends Model
     'email',
     'location',
     'copyright_text',
+  ];
+
+  protected $casts = [
+    'cta_dropdown_items' => 'array',
   ];
 
   public static function current(): self

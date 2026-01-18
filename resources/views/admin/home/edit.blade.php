@@ -73,6 +73,33 @@
                             </div>
                         </div>
 
+                        @php
+                            $ctaDropdownLines = collect(old('cta_dropdown_items_text') !== null
+                                ? preg_split("/\r\n|\r|\n/", (string) old('cta_dropdown_items_text'))
+                                : (is_array($settings->cta_dropdown_items) ? $settings->cta_dropdown_items : []))
+                                ->filter()
+                                ->map(function ($item) {
+                                    if (is_string($item)) {
+                                        return $item;
+                                    }
+
+                                    $label = is_array($item) ? ($item['label'] ?? '') : '';
+                                    $url = is_array($item) ? ($item['url'] ?? '') : '';
+
+                                    return trim($label) !== '' || trim($url) !== '' ? (trim($label) . '|' . trim($url)) : null;
+                                })
+                                ->filter()
+                                ->values()
+                                ->implode("\n");
+                        @endphp
+
+                        <div class="form-group">
+                            <label for="cta_dropdown_items_text">Botón: Desplegable (opcional)</label>
+                            <textarea id="cta_dropdown_items_text" name="cta_dropdown_items_text" rows="4" class="form-control @error('cta_dropdown_items_text') is-invalid @enderror" placeholder="Ej: WhatsApp|https://wa.me/569XXXXXXXX\nEmail|mailto:ventas@tuempresa.cl\nLlamar|tel:+569XXXXXXXX">{{ $ctaDropdownLines }}</textarea>
+                            <small class="form-text text-muted">Una opción por línea, formato: <strong>Texto|URL</strong>. Máximo 10 opciones.</small>
+                            @error('cta_dropdown_items_text')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
                         <hr>
 
                         <div class="form-row">

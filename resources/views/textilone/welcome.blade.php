@@ -184,6 +184,61 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+
+        .cta-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .cta-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: min(320px, 92vw);
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 8px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+            z-index: 30;
+        }
+
+        .cta-dropdown-menu[hidden] {
+            display: none;
+        }
+
+        .cta-dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: none;
+            letter-spacing: 0;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: background 0.2s, border-color 0.2s, transform 0.2s;
+        }
+
+        .cta-dropdown-item:hover {
+            background: rgba(255, 0, 0, 0.22);
+            border-color: rgba(255, 0, 0, 0.28);
+            transform: translateY(-1px);
+        }
+
+        .cta-dropdown-caret {
+            margin-left: 10px;
+            font-size: 18px;
+            vertical-align: -2px;
+            opacity: 0.9;
+        }
        
         .cta-button:hover {
             transform: translateY(-3px);
@@ -930,7 +985,33 @@
             <section class="hero">
                 <h1>{{ $settings->hero_title ?: 'Personalización de Textiles de Alta Calidad' }}</h1>
                 <p>{{ $settings->hero_subtitle ?: 'Especialistas en estampados, bordados y sublimación para tu empresa' }}</p>
-                <a href="{{ $settings->cta_url ?: '#' }}" class="cta-button">{{ $settings->cta_text ?: 'Cotiza ahora' }}</a>
+                @php
+                    $ctaItems = is_array($settings->cta_dropdown_items ?? null) ? $settings->cta_dropdown_items : [];
+                    $ctaItems = array_values(array_filter($ctaItems, function ($item) {
+                        return is_array($item)
+                            && trim((string) ($item['label'] ?? '')) !== ''
+                            && trim((string) ($item['url'] ?? '')) !== '';
+                    }));
+                @endphp
+
+                @if (count($ctaItems))
+                    <div class="cta-dropdown" data-cta-dropdown>
+                        <button type="button" class="cta-button" data-cta-toggle aria-haspopup="menu" aria-expanded="false">
+                            {{ $settings->cta_text ?: 'Cotiza ahora' }}
+                            <span class="cta-dropdown-caret">▾</span>
+                        </button>
+                        <div class="cta-dropdown-menu" data-cta-menu role="menu" hidden>
+                            @foreach ($ctaItems as $item)
+                                <a class="cta-dropdown-item" role="menuitem" href="{{ $item['url'] }}">
+                                    <span>{{ $item['label'] }}</span>
+                                    <span aria-hidden="true">→</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @else
+                    <a href="{{ $settings->cta_url ?: '#' }}" class="cta-button">{{ $settings->cta_text ?: 'Cotiza ahora' }}</a>
+                @endif
             </section>
            
             <section class="section" id="services">
@@ -1244,6 +1325,52 @@
                 if (e.key === 'Escape') {
                     e.preventDefault();
                     close();
+                }
+            });
+        })();
+    </script>
+    <script>
+        (function () {
+            const root = document.querySelector('[data-cta-dropdown]');
+            if (!root) return;
+
+            const toggle = root.querySelector('[data-cta-toggle]');
+            const menu = root.querySelector('[data-cta-menu]');
+            if (!toggle || !menu) return;
+
+            const open = () => {
+                menu.hidden = false;
+                toggle.setAttribute('aria-expanded', 'true');
+            };
+
+            const close = () => {
+                menu.hidden = true;
+                toggle.setAttribute('aria-expanded', 'false');
+            };
+
+            const isOpen = () => !menu.hidden;
+
+            toggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (isOpen()) {
+                    close();
+                } else {
+                    open();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!isOpen()) return;
+                if (root.contains(e.target)) return;
+                close();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (!isOpen()) return;
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    close();
+                    toggle.focus();
                 }
             });
         })();

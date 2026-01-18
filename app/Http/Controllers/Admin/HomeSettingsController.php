@@ -39,6 +39,7 @@ class HomeSettingsController
       'hero_subtitle' => ['nullable', 'string', 'max:2000'],
       'cta_text' => ['nullable', 'string', 'max:255'],
       'cta_url' => ['nullable', 'string', 'max:2048'],
+      'cta_dropdown_items_text' => ['nullable', 'string', 'max:4000'],
       'services_title' => ['nullable', 'string', 'max:255'],
       'promotions_title' => ['nullable', 'string', 'max:255'],
       'products_title' => ['nullable', 'string', 'max:255'],
@@ -50,6 +51,56 @@ class HomeSettingsController
       'copyright_text' => ['nullable', 'string', 'max:255'],
       'logo' => ['nullable', 'file', 'image', 'max:4096'],
     ]);
+
+    $ctaDropdownText = (string) ($validated['cta_dropdown_items_text'] ?? '');
+    unset($validated['cta_dropdown_items_text']);
+
+    $ctaDropdownItems = [];
+    if (trim($ctaDropdownText) !== '') {
+      $lines = preg_split("/\r\n|\r|\n/", $ctaDropdownText) ?: [];
+
+      foreach ($lines as $line) {
+        $line = trim((string) $line);
+        if ($line === '') {
+          continue;
+        }
+
+        [$label, $url] = array_pad(array_map('trim', explode('|', $line, 2)), 2, '');
+
+        if ($label === '' || $url === '') {
+          return back()
+            ->withErrors(['cta_dropdown_items_text' => 'Cada línea debe tener el formato: Texto|URL'])
+            ->withInput();
+        }
+
+        // Allow common schemes used for quotes/contacts.
+        $allowedSchemes = ['http://', 'https://', 'mailto:', 'tel:', 'whatsapp://', 'sms:'];
+        $hasAllowedScheme = false;
+        foreach ($allowedSchemes as $scheme) {
+          if (str_starts_with(mb_strtolower($url), $scheme)) {
+            $hasAllowedScheme = true;
+            break;
+          }
+        }
+
+        if (!$hasAllowedScheme && !str_starts_with($url, '/')) {
+          return back()
+            ->withErrors(['cta_dropdown_items_text' => 'Las URLs deben comenzar con https://, http://, /, mailto:, tel:, whatsapp:// o sms:'])
+            ->withInput();
+        }
+
+        $ctaDropdownItems[] = [
+          'label' => mb_substr($label, 0, 80),
+          'url' => mb_substr($url, 0, 2048),
+        ];
+
+        if (count($ctaDropdownItems) >= 10) {
+          break;
+        }
+      }
+    }
+
+    $validated['cta_dropdown_items'] = $ctaDropdownItems ?: null;
 
     $logoFile = $request->file('logo');
 
