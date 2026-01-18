@@ -1176,10 +1176,6 @@
             <footer class="footer" id="contact">
                 <div class="contact-info">
                     <div class="contact-item">
-                        <i class="material-icons">photo_camera</i>
-                        {{ $settings->photo_camera ?: "@textilonechile" }}
-                    </div>
-                    <div class="contact-item">
                         <i class="material-icons">email</i>
                         {{ $settings->email ?: 'contacto@textilonechile.cl' }}
                     </div>
