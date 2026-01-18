@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\HomeProduct;
 use App\Models\HomeService;
 use App\Models\HomeSetting;
+use App\Models\Company;
 use App\Models\Promotion;
 use App\Models\PromotionDetail;
 use App\Models\SocialLink;
@@ -101,6 +102,29 @@ class HomeContentSeeder extends Seeder
       SocialLink::query()->create(['icon' => 'alternate_email', 'url' => '#', 'position' => 1, 'is_active' => true]);
       SocialLink::query()->create(['icon' => 'photo_camera', 'url' => '#', 'position' => 2, 'is_active' => true]);
       SocialLink::query()->create(['icon' => 'language', 'url' => '#', 'position' => 3, 'is_active' => true]);
+    }
+
+    // Companies (clients/partners).
+    if (Company::query()->count() === 0) {
+      $companies = [
+        ['name' => 'Acme Logistics', 'position' => 1],
+        ['name' => 'Café Central', 'position' => 2],
+        ['name' => 'Constructora Andina', 'position' => 3],
+        ['name' => 'Fitness Pro', 'position' => 4],
+        ['name' => 'Colegio Santa María', 'position' => 5],
+        ['name' => 'Eventos Norte', 'position' => 6],
+        ['name' => 'Seguridad Sur', 'position' => 7],
+        ['name' => 'Tienda Urbana', 'position' => 8],
+      ];
+
+      foreach ($companies as $company) {
+        Company::query()->create([
+          'name' => $company['name'],
+          'logo_path' => null,
+          'position' => $company['position'],
+          'is_active' => true,
+        ]);
+      }
     }
 
     // Promotions + details.

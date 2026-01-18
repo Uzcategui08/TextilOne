@@ -670,6 +670,97 @@
                 align-items: flex-start;
             }
         }
+        /* Companies carousel styles */
+        .companies-carousel-wrap {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .companies-carousel-wrap::before,
+        .companies-carousel-wrap::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 64px;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .companies-carousel-wrap::before {
+            left: 0;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+        }
+
+        .companies-carousel-wrap::after {
+            right: 0;
+            background: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+        }
+
+        .companies-carousel {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .companies-track {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+            padding: 14px 68px;
+            will-change: transform, scroll-position;
+            width: max-content;
+            animation: companies-marquee 40s linear infinite;
+        }
+
+        .companies-carousel-wrap:hover .companies-track,
+        .companies-carousel-wrap:focus-within .companies-track {
+            animation-play-state: paused;
+        }
+
+        @keyframes companies-marquee {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .companies-track {
+                animation: none;
+            }
+        }
+
+        .company-item {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+            max-width: 180px;
+        }
+
+        .company-logo img {
+            max-height: 56px;
+            max-width: 170px;
+            object-fit: contain;
+            filter: grayscale(100%) opacity(0.85);
+            transition: filter 0.25s ease, opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .company-logo img:hover {
+            filter: none;
+            opacity: 1;
+            transform: translateY(-3px);
+        }
+
+        .company-name {
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 14px;
+            opacity: 0.85;
+        }
     </style>
 </head>
 <body>
@@ -781,6 +872,45 @@
                 </div>
             </section>
            
+            @if(isset($companies) && $companies->count())
+            <section class="section companies" id="companies">
+                <h2 class="section-title">
+                    <i class="material-icons">business</i>
+                    {{ $settings->companies_title ?: 'Empresas que confían en TextilOne' }}
+                </h2>
+
+                <div class="companies-carousel-wrap">
+                    <div class="companies-carousel" role="region" aria-label="Empresas que trabajan con TextilOne" tabindex="0">
+                        <div class="companies-track">
+                            @foreach ($companies as $company)
+                                <div class="company-item" role="listitem">
+                                    <div class="company-logo">
+                                        @if ($company->logo_path)
+                                            <img src="{{ asset('storage/' . $company->logo_path) }}" alt="{{ $company->name }}">
+                                        @else
+                                            <span class="company-name">{{ $company->name }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                            {{-- duplicamos para un scroll continuo sin saltos --}}
+                            @foreach ($companies as $company)
+                                <div class="company-item" aria-hidden="true">
+                                    <div class="company-logo">
+                                        @if ($company->logo_path)
+                                            <img src="{{ asset('storage/' . $company->logo_path) }}" alt="{{ $company->name }}">
+                                        @else
+                                            <span class="company-name">{{ $company->name }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </section>
+            @endif
+
             <section class="guarantee">
                 <i class="material-icons">verified</i>
                 <div class="guarantee-content">

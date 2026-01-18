@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\HomeSettingsController;
 use App\Http\Controllers\Admin\HomeServiceController;
 use App\Http\Controllers\Admin\HomeProductController;
+use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\SocialLinkController;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::resource('services', HomeServiceController::class)->except(['show']);
     Route::resource('products', HomeProductController::class)->except(['show']);
+    Route::resource('companies', CompanyController::class)->except(['show']);
     Route::resource('promotions', PromotionController::class)->except(['show']);
     Route::resource('social-links', SocialLinkController::class)->except(['show']);
 });

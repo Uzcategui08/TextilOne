@@ -65,9 +65,9 @@ return [
 
     'logo' => '<b>Textil</b>One',
     'logo_img' => 'images/TextilOne.png',
-    'logo_img_class' => 'brand-image',
+    'logo_img_class' => 'brand-image img-circle elevation-3 bg-white p-1',
     'logo_img_xl' => null,
-    'logo_img_xl_class' => 'brand-image-xs',
+    'logo_img_xl_class' => 'brand-image-xs img-circle elevation-3 bg-white p-1',
     'logo_img_alt' => 'TextilOne Logo',
 
     /*
@@ -260,7 +260,7 @@ return [
     'dashboard_url' => 'admin/home',
     'logout_url' => 'logout',
     'login_url' => 'login',
-    'register_url' => 'register',
+    'register_url' => 'Salvod32532',
     'password_reset_url' => 'password/reset',
     'password_email_url' => 'password/email',
     'profile_url' => false,
@@ -318,6 +318,11 @@ return [
             'text' => 'products',
             'url' => 'admin/products',
             'icon' => 'fas fa-fw fa-box-open',
+        ],
+        [
+            'text' => 'companies',
+            'url' => 'admin/companies',
+            'icon' => 'fas fa-fw fa-building',
         ],
         [
             'text' => 'promotions',

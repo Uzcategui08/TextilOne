@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\HomeProduct;
 use App\Models\HomeService;
 use App\Models\HomeSetting;
@@ -43,13 +44,18 @@ class HomeController
       ? SocialLink::query()->where('is_active', true)->orderBy('position')->get()
       : collect();
 
+    $companies = Schema::hasTable((new Company())->getTable())
+      ? Company::query()->where('is_active', true)->orderBy('position')->get()
+      : collect();
+
     return view('textilone.welcome', compact(
       'settings',
       'logoUrl',
       'services',
       'products',
       'promotions',
-      'socialLinks'
+      'socialLinks',
+      'companies'
     ));
   }
 }
