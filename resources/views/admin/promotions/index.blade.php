@@ -33,7 +33,7 @@
                             <td>{{ $promotion->id }}</td>
                             <td>{{ $promotion->carousel_group }}</td>
                             <td>{{ $promotion->position }}</td>
-                            <td>{{ trim((string) $promotion->title) !== '' ? $promotion->title : '—' }}</td>
+                            <td>{{ $promotion->title }}</td>
                             <td>{{ $promotion->is_active ? 'Sí' : 'No' }}</td>
                             <td>
                                 <a class="btn btn-sm btn-secondary" href="{{ route('admin.promotions.edit', $promotion) }}">Editar</a>

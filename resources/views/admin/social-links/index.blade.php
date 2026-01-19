@@ -2,10 +2,6 @@
 
 @section('title', 'Redes sociales')
 
-@push('css')
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-@endpush
-
 @section('content_header')
     <div class="d-flex align-items-center justify-content-between">
         <h1 class="mb-0">Redes sociales</h1>
@@ -35,21 +31,7 @@
                     @forelse ($socialLinks as $socialLink)
                         <tr>
                             <td>{{ $socialLink->id }}</td>
-                            <td>
-                                @php
-                                    $socialIcon = strtolower(trim((string) ($socialLink->icon ?? '')));
-                                @endphp
-
-                                @if (in_array($socialIcon, ['facebook', 'facebook-f', 'fb'], true))
-                                    <i class="fa-brands fa-facebook-f" aria-hidden="true"></i>
-                                @elseif ($socialIcon === 'instagram')
-                                    <i class="fa-brands fa-instagram" aria-hidden="true"></i>
-                                @elseif (in_array($socialIcon, ['x', 'twitter', 'x-twitter'], true))
-                                    <i class="fa-brands fa-x-twitter" aria-hidden="true"></i>
-                                @else
-                                    <i class="material-icons">{{ $socialLink->icon }}</i>
-                                @endif
-                            </td>
+                            <td><i class="material-icons">{{ $socialLink->icon }}</i></td>
                             <td style="max-width: 420px; word-break: break-all;">{{ $socialLink->url }}</td>
                             <td>{{ $socialLink->position }}</td>
                             <td>{{ $socialLink->is_active ? 'Sí' : 'No' }}</td>
