@@ -1057,7 +1057,7 @@
                     <span class="highlight promotions-hint">{{ $settings->promotions_subtitle ?: '¡Dar click a las imagenes para ver más!' }}</span>
                 </h2>
                 @foreach ($promotions as $groupIndex => $group)
-                    @if ($loop->iteration === 2)
+                    @if ($loop->iteration === 1)
                         <div class="promo-mini-title" style="margin-top: -6px;">
                             <i class="material-icons">local_offer</i>
                             Promociones de bordado
