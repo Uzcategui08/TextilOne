@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $settings->site_title ?: 'TextilOne' }}</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" referrerpolicy="no-referrer">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -741,13 +740,15 @@
             transition: background-color 0.3s, transform 0.3s;
         }
 
-        .social-link i {
-            font-size: 20px;
-            line-height: 1;
+        .social-link svg {
+            width: 20px;
+            height: 20px;
+            display: block;
         }
 
         .social-link .material-icons {
             font-size: 20px;
+            line-height: 1;
         }
        
         .social-link:hover {
@@ -1221,12 +1222,26 @@
                     @foreach ($socialLinks as $socialLink)
                         @php
                             $socialIcon = strtolower(trim((string) ($socialLink->icon ?? '')));
+                            $socialUrl = strtolower(trim((string) ($socialLink->url ?? '')));
+
+                            $socialType = null;
+                            if (in_array($socialIcon, ['facebook', 'facebook-f', 'fb'], true) || str_contains($socialUrl, 'facebook.com') || str_contains($socialUrl, 'fb.me')) {
+                                $socialType = 'facebook';
+                            } elseif ($socialIcon === 'instagram' || str_contains($socialUrl, 'instagram.com')) {
+                                $socialType = 'instagram';
+                            }
                         @endphp
-                        <a href="{{ $socialLink->url }}" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="{{ $socialIcon ?: 'red social' }}">
-                            @if (in_array($socialIcon, ['facebook', 'facebook-f', 'fb'], true))
-                                <i class="fa-brands fa-facebook-f" aria-hidden="true"></i>
-                            @elseif ($socialIcon === 'instagram')
-                                <i class="fa-brands fa-instagram" aria-hidden="true"></i>
+                        <a href="{{ $socialLink->url }}" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="{{ $socialType ?: ($socialIcon ?: 'red social') }}">
+                            @if ($socialType === 'facebook')
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill="currentColor" d="M14 8.5V7c0-.8.6-1.5 1.5-1.5H17V3h-1.5C13 3 11 5 11 7.5v1H9v3h2V21h3v-9.5h2.5L17 8.5H14z" />
+                                </svg>
+                            @elseif ($socialType === 'instagram')
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <rect x="3" y="3" width="18" height="18" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2" />
+                                    <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2" />
+                                    <circle cx="17" cy="7" r="1" fill="currentColor" />
+                                </svg>
                             @else
                                 <i class="material-icons">{{ $socialLink->icon }}</i>
                             @endif
