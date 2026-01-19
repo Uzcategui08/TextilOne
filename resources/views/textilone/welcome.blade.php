@@ -763,6 +763,23 @@
         .promotions .section-title {
             flex-wrap: wrap;
         }
+
+        .promo-mini-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #d1d5db;
+            margin-bottom: 8px;
+        }
+
+        .promo-mini-title i {
+            font-size: 16px;
+            color: #ff0000;
+        }
        
         .admin-link {
             display: inline-flex;
@@ -1040,6 +1057,12 @@
                     <span class="highlight promotions-hint">{{ $settings->promotions_subtitle ?: '¡Dar click a las imagenes para ver más!' }}</span>
                 </h2>
                 @foreach ($promotions as $groupIndex => $group)
+                    @if ($loop->iteration === 2)
+                        <div class="promo-mini-title" style="margin-top: -6px;">
+                            <i class="material-icons">local_offer</i>
+                            Promociones de bordado
+                        </div>
+                    @endif
                     <div class="promo-carousel-wrap" data-carousel="promo-{{ $groupIndex }}">
                         <button type="button" class="carousel-btn prev" aria-label="Promoción anterior">
                             <i class="material-icons">chevron_left</i>
