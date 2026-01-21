@@ -1336,21 +1336,36 @@
                 let lastTs = null;
                 let resumeHandle = null;
                 let isAutoScrolling = false;
+                let loopWidth = 0;
 
                 // Speed is pixels/second (multiplier per-row)
                 const speedMultiplier = Number.parseFloat(wrap.getAttribute('data-speed') || '1') || 1;
                 const baseSpeed = 32; // px/s
                 const speed = baseSpeed * speedMultiplier;
 
-                const getHalfWidth = () => track.scrollWidth / 2;
+                const hasOverflow = () => track.scrollWidth > carousel.clientWidth + 4;
 
-                const shouldRun = () => {
-                    const half = getHalfWidth();
-                    return Number.isFinite(half) && half > carousel.clientWidth + 4;
+                const computeLoopWidth = () => {
+                    // We duplicate items; use the first duplicated card as a boundary.
+                    const firstOriginal = track.querySelector('.promo-card:not([aria-hidden])');
+                    const firstDuplicate = track.querySelector('.promo-card[aria-hidden]');
+                    if (firstOriginal && firstDuplicate) {
+                        const w = firstDuplicate.offsetLeft - firstOriginal.offsetLeft;
+                        if (Number.isFinite(w) && w > 0) return w;
+                    }
+                    const fallback = track.scrollWidth / 2;
+                    return Number.isFinite(fallback) && fallback > 0 ? fallback : 0;
+                };
+
+                const recalc = () => {
+                    loopWidth = computeLoopWidth();
+                    if (loopWidth > 0 && carousel.scrollLeft >= loopWidth) {
+                        carousel.scrollLeft = carousel.scrollLeft % loopWidth;
+                    }
                 };
 
                 const step = (ts) => {
-                    if (prefersReducedMotion || isPaused || !shouldRun()) {
+                    if (prefersReducedMotion || isPaused || !hasOverflow() || loopWidth <= 0) {
                         lastTs = ts;
                         rafId = window.requestAnimationFrame(step);
                         return;
@@ -1360,7 +1375,7 @@
                     const dt = clamp((ts - lastTs) / 1000, 0, 0.06);
                     lastTs = ts;
 
-                    const half = getHalfWidth();
+                    const half = loopWidth;
                     isAutoScrolling = true;
                     carousel.scrollLeft += speed * dt;
                     if (carousel.scrollLeft >= half) {
@@ -1487,13 +1502,21 @@
                     else isPaused = false;
                 });
 
+                // Measure after images/layout settle
+                recalc();
+                window.addEventListener('load', recalc, { once: true });
+                window.addEventListener('resize', () => {
+                    recalc();
+                });
+                const imgs = track.querySelectorAll('img');
+                imgs.forEach((imgEl) => {
+                    if (imgEl.complete) return;
+                    imgEl.addEventListener('load', recalc, { once: true });
+                    imgEl.addEventListener('error', recalc, { once: true });
+                });
+
                 // Start loop
                 rafId = window.requestAnimationFrame(step);
-
-                // Ensure we don't start mid-gap on load
-                if (carousel.scrollLeft >= getHalfWidth()) {
-                    carousel.scrollLeft -= getHalfWidth();
-                }
             };
 
             wraps.forEach(init);
