@@ -347,8 +347,22 @@
         }
 
         .promo-carousel {
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
             width: 100%;
+            scrollbar-width: none;
+            touch-action: pan-x;
+            cursor: grab;
+        }
+
+        .promo-carousel::-webkit-scrollbar {
+            display: none;
+        }
+
+        .promo-carousel.is-dragging {
+            cursor: grabbing;
+            user-select: none;
         }
 
         .promo-carousel::-webkit-scrollbar {
@@ -360,29 +374,8 @@
             gap: 18px;
             align-items: stretch;
             padding: 14px 68px;
-            will-change: transform;
+            will-change: scroll-position;
             width: max-content;
-            animation: promo-marquee 44s linear infinite;
-        }
-
-        .promo-carousel-wrap:hover .promo-track,
-        .promo-carousel-wrap:focus-within .promo-track {
-            animation-play-state: paused;
-        }
-
-        @keyframes promo-marquee {
-            from {
-                transform: translateX(0);
-            }
-            to {
-                transform: translateX(-50%);
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .promo-track {
-                animation: none;
-            }
         }
 
         .promo-carousel .promo-card {
@@ -1106,7 +1099,7 @@
                             Promociones de bordado
                         </div>
                     @endif
-                    <div class="promo-carousel-wrap" data-carousel="promo-{{ $groupIndex }}">
+                    <div class="promo-carousel-wrap" data-carousel="promo-{{ $groupIndex }}" data-speed="{{ $loop->iteration === 2 ? '0.72' : '1' }}">
                         <div class="promo-carousel" role="region" aria-label="Promociones" tabindex="0">
                             <div class="promo-track">
                                 @foreach ($group as $promo)
@@ -1324,6 +1317,175 @@
             <div class="lightbox-title"></div>
         </div>
     </div>
+
+    <script>
+        (function () {
+            const wraps = document.querySelectorAll('.promo-carousel-wrap');
+            if (!wraps.length) return;
+
+            const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+            const init = (wrap) => {
+                const carousel = wrap.querySelector('.promo-carousel');
+                const track = wrap.querySelector('.promo-track');
+                if (!carousel || !track) return;
+
+                let isPaused = false;
+                let rafId = null;
+                let lastTs = null;
+                let resumeHandle = null;
+
+                // Speed is pixels/second (multiplier per-row)
+                const speedMultiplier = Number.parseFloat(wrap.getAttribute('data-speed') || '1') || 1;
+                const baseSpeed = 32; // px/s
+                const speed = baseSpeed * speedMultiplier;
+
+                const getHalfWidth = () => track.scrollWidth / 2;
+
+                const shouldRun = () => {
+                    const half = getHalfWidth();
+                    return Number.isFinite(half) && half > carousel.clientWidth + 4;
+                };
+
+                const step = (ts) => {
+                    if (prefersReducedMotion || isPaused || !shouldRun()) {
+                        lastTs = ts;
+                        rafId = window.requestAnimationFrame(step);
+                        return;
+                    }
+
+                    if (lastTs == null) lastTs = ts;
+                    const dt = clamp((ts - lastTs) / 1000, 0, 0.06);
+                    lastTs = ts;
+
+                    const half = getHalfWidth();
+                    carousel.scrollLeft += speed * dt;
+                    if (carousel.scrollLeft >= half) {
+                        carousel.scrollLeft -= half;
+                    }
+
+                    rafId = window.requestAnimationFrame(step);
+                };
+
+                const pause = () => {
+                    isPaused = true;
+                };
+
+                const resumeSoon = (delayMs = 900) => {
+                    pause();
+                    if (resumeHandle) window.clearTimeout(resumeHandle);
+                    resumeHandle = window.setTimeout(() => {
+                        resumeHandle = null;
+                        isPaused = false;
+                    }, delayMs);
+                };
+
+                wrap.addEventListener('mouseenter', pause);
+                wrap.addEventListener('mouseleave', () => {
+                    isPaused = false;
+                });
+                wrap.addEventListener('focusin', pause);
+                wrap.addEventListener('focusout', () => {
+                    isPaused = false;
+                });
+
+                // Native touch scrolling on mobile; on desktop allow mouse-drag.
+                let dragging = false;
+                let dragPointerId = null;
+                let dragStartX = 0;
+                let dragStartScrollLeft = 0;
+                let didDrag = false;
+                let suppressNextClick = false;
+
+                carousel.addEventListener(
+                    'click',
+                    (e) => {
+                        if (!suppressNextClick) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        suppressNextClick = false;
+                    },
+                    true
+                );
+
+                const onPointerDown = (e) => {
+                    if (e.pointerType !== 'mouse') return; // touch uses native scroll
+                    if (e.button !== 0) return;
+
+                    dragging = true;
+                    didDrag = false;
+                    dragPointerId = e.pointerId;
+                    dragStartX = e.clientX;
+                    dragStartScrollLeft = carousel.scrollLeft;
+                    pause();
+                };
+
+                const onPointerMove = (e) => {
+                    if (!dragging) return;
+                    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
+
+                    const dx = e.clientX - dragStartX;
+                    if (!didDrag) {
+                        if (Math.abs(dx) <= 6) return;
+                        didDrag = true;
+                        carousel.classList.add('is-dragging');
+                        try {
+                            carousel.setPointerCapture(dragPointerId);
+                        } catch (_) {
+                            // ignore
+                        }
+                    }
+
+                    carousel.scrollLeft = dragStartScrollLeft - dx;
+                    e.preventDefault();
+                };
+
+                const onPointerUp = (e) => {
+                    if (!dragging) return;
+                    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
+
+                    dragging = false;
+                    dragPointerId = null;
+                    carousel.classList.remove('is-dragging');
+
+                    if (didDrag) {
+                        suppressNextClick = true;
+                        window.setTimeout(() => {
+                            suppressNextClick = false;
+                        }, 0);
+                    }
+
+                    resumeSoon(900);
+                };
+
+                carousel.addEventListener('pointerdown', onPointerDown);
+                carousel.addEventListener('pointermove', onPointerMove, { passive: false });
+                carousel.addEventListener('pointerup', onPointerUp);
+                carousel.addEventListener('pointercancel', onPointerUp);
+
+                // If user scrolls (trackpad), pause briefly then resume
+                carousel.addEventListener('scroll', () => resumeSoon(1100), { passive: true });
+                carousel.addEventListener('touchstart', pause, { passive: true });
+                carousel.addEventListener('touchend', () => resumeSoon(900), { passive: true });
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) pause();
+                    else isPaused = false;
+                });
+
+                // Start loop
+                rafId = window.requestAnimationFrame(step);
+
+                // Ensure we don't start mid-gap on load
+                if (carousel.scrollLeft >= getHalfWidth()) {
+                    carousel.scrollLeft -= getHalfWidth();
+                }
+            };
+
+            wraps.forEach(init);
+        })();
+    </script>
 
     <script>
         (function () {
