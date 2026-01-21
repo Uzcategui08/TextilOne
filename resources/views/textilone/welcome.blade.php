@@ -347,17 +347,10 @@
         }
 
         .promo-carousel {
-            overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
+            overflow: hidden;
             width: 100%;
-            scrollbar-width: none;
-            touch-action: pan-x;
+            touch-action: pan-y;
             cursor: grab;
-        }
-
-        .promo-carousel::-webkit-scrollbar {
-            display: none;
         }
 
         .promo-carousel.is-dragging {
@@ -374,8 +367,33 @@
             gap: 18px;
             align-items: stretch;
             padding: 14px 68px;
-            will-change: scroll-position;
+            will-change: transform;
             width: max-content;
+            animation: promo-marquee var(--promo-duration, 44s) linear infinite;
+        }
+
+        .promo-carousel-wrap:hover .promo-track,
+        .promo-carousel-wrap:focus-within .promo-track {
+            animation-play-state: paused;
+        }
+
+        .promo-carousel-wrap.js-marquee .promo-track {
+            animation: none;
+        }
+
+        @keyframes promo-marquee {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .promo-track {
+                animation: none;
+            }
         }
 
         .promo-carousel .promo-card {
@@ -1099,7 +1117,7 @@
                             Promociones de bordado
                         </div>
                     @endif
-                    <div class="promo-carousel-wrap" data-carousel="promo-{{ $groupIndex }}" data-speed="{{ $loop->iteration === 2 ? '0.72' : '1' }}">
+                    <div class="promo-carousel-wrap" data-carousel="promo-{{ $groupIndex }}" style="--promo-duration: {{ $loop->iteration === 2 ? '62s' : '44s' }};">
                         <div class="promo-carousel" role="region" aria-label="Promociones" tabindex="0">
                             <div class="promo-track">
                                 @foreach ($group as $promo)
@@ -1326,27 +1344,32 @@
             const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
+            const parseSeconds = (value, fallback) => {
+                const n = Number.parseFloat(String(value || '').replace('s', '').trim());
+                return Number.isFinite(n) && n > 0 ? n : fallback;
+            };
+
+            const mod = (n, m) => ((n % m) + m) % m;
+
             const init = (wrap) => {
                 const carousel = wrap.querySelector('.promo-carousel');
                 const track = wrap.querySelector('.promo-track');
                 if (!carousel || !track) return;
 
+                // Enable JS marquee (disables CSS animation but keeps same effect)
+                wrap.classList.add('js-marquee');
+
                 let isPaused = false;
                 let rafId = null;
                 let lastTs = null;
                 let resumeHandle = null;
-                let isAutoScrolling = false;
+
                 let loopWidth = 0;
+                let x = 0; // px, negative moves left
 
-                // Speed is pixels/second (multiplier per-row)
-                const speedMultiplier = Number.parseFloat(wrap.getAttribute('data-speed') || '1') || 1;
-                const baseSpeed = 32; // px/s
-                const speed = baseSpeed * speedMultiplier;
-
-                const hasOverflow = () => track.scrollWidth > carousel.clientWidth + 4;
+                const hasEnoughItems = () => track.scrollWidth > carousel.clientWidth + 4;
 
                 const computeLoopWidth = () => {
-                    // We duplicate items; use the first duplicated card as a boundary.
                     const firstOriginal = track.querySelector('.promo-card:not([aria-hidden])');
                     const firstDuplicate = track.querySelector('.promo-card[aria-hidden]');
                     if (firstOriginal && firstDuplicate) {
@@ -1357,15 +1380,28 @@
                     return Number.isFinite(fallback) && fallback > 0 ? fallback : 0;
                 };
 
+                const getDurationSec = () => {
+                    const cssDuration = getComputedStyle(wrap).getPropertyValue('--promo-duration');
+                    return parseSeconds(cssDuration, 44);
+                };
+
+                const normalizeX = () => {
+                    if (loopWidth <= 0) return;
+                    x = -mod(-x, loopWidth);
+                };
+
+                const apply = () => {
+                    track.style.transform = `translateX(${x}px)`;
+                };
+
                 const recalc = () => {
                     loopWidth = computeLoopWidth();
-                    if (loopWidth > 0 && carousel.scrollLeft >= loopWidth) {
-                        carousel.scrollLeft = carousel.scrollLeft % loopWidth;
-                    }
+                    normalizeX();
+                    apply();
                 };
 
                 const step = (ts) => {
-                    if (prefersReducedMotion || isPaused || !hasOverflow() || loopWidth <= 0) {
+                    if (prefersReducedMotion || isPaused || !hasEnoughItems() || loopWidth <= 0) {
                         lastTs = ts;
                         rafId = window.requestAnimationFrame(step);
                         return;
@@ -1375,15 +1411,11 @@
                     const dt = clamp((ts - lastTs) / 1000, 0, 0.06);
                     lastTs = ts;
 
-                    const half = loopWidth;
-                    isAutoScrolling = true;
-                    carousel.scrollLeft += speed * dt;
-                    if (carousel.scrollLeft >= half) {
-                        carousel.scrollLeft -= half;
-                    }
-                    window.requestAnimationFrame(() => {
-                        isAutoScrolling = false;
-                    });
+                    const durationSec = getDurationSec();
+                    const pxPerSec = loopWidth / durationSec;
+                    x -= pxPerSec * dt;
+                    if (x <= -loopWidth) x += loopWidth;
+                    apply();
 
                     rafId = window.requestAnimationFrame(step);
                 };
@@ -1410,11 +1442,11 @@
                     isPaused = false;
                 });
 
-                // Native touch scrolling on mobile; on desktop allow mouse-drag.
+                // Drag with mouse or touch (pointer events). Prevent accidental clicks after drag.
                 let dragging = false;
                 let dragPointerId = null;
+                let dragStartClientX = 0;
                 let dragStartX = 0;
-                let dragStartScrollLeft = 0;
                 let didDrag = false;
                 let suppressNextClick = false;
 
@@ -1430,14 +1462,12 @@
                 );
 
                 const onPointerDown = (e) => {
-                    if (e.pointerType !== 'mouse') return; // touch uses native scroll
-                    if (e.button !== 0) return;
-
+                    if (e.pointerType === 'mouse' && e.button !== 0) return;
                     dragging = true;
                     didDrag = false;
                     dragPointerId = e.pointerId;
-                    dragStartX = e.clientX;
-                    dragStartScrollLeft = carousel.scrollLeft;
+                    dragStartClientX = e.clientX;
+                    dragStartX = x;
                     pause();
                 };
 
@@ -1445,7 +1475,7 @@
                     if (!dragging) return;
                     if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
 
-                    const dx = e.clientX - dragStartX;
+                    const dx = e.clientX - dragStartClientX;
                     if (!didDrag) {
                         if (Math.abs(dx) <= 6) return;
                         didDrag = true;
@@ -1457,7 +1487,9 @@
                         }
                     }
 
-                    carousel.scrollLeft = dragStartScrollLeft - dx;
+                    x = dragStartX + dx;
+                    normalizeX();
+                    apply();
                     e.preventDefault();
                 };
 
@@ -1484,19 +1516,6 @@
                 carousel.addEventListener('pointerup', onPointerUp);
                 carousel.addEventListener('pointercancel', onPointerUp);
 
-                // If user scrolls (trackpad), pause briefly then resume. Ignore programmatic auto-scroll.
-                carousel.addEventListener(
-                    'scroll',
-                    () => {
-                        if (isAutoScrolling) return;
-                        resumeSoon(1100);
-                    },
-                    { passive: true }
-                );
-                carousel.addEventListener('wheel', () => resumeSoon(1100), { passive: true });
-                carousel.addEventListener('touchstart', pause, { passive: true });
-                carousel.addEventListener('touchend', () => resumeSoon(900), { passive: true });
-
                 document.addEventListener('visibilitychange', () => {
                     if (document.hidden) pause();
                     else isPaused = false;
@@ -1505,9 +1524,7 @@
                 // Measure after images/layout settle
                 recalc();
                 window.addEventListener('load', recalc, { once: true });
-                window.addEventListener('resize', () => {
-                    recalc();
-                });
+                window.addEventListener('resize', recalc);
                 const imgs = track.querySelectorAll('img');
                 imgs.forEach((imgEl) => {
                     if (imgEl.complete) return;
