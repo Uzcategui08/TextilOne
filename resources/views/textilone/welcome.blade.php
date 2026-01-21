@@ -318,7 +318,28 @@
 
         .promo-carousel-wrap {
             position: relative;
-            padding-right: 0;
+            margin-bottom: 18px;
+        }
+
+        .promo-carousel-wrap::before,
+        .promo-carousel-wrap::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 64px;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .promo-carousel-wrap::before {
+            left: 0;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+        }
+
+        .promo-carousel-wrap::after {
+            right: 0;
+            background: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
         }
 
         .promo-carousel-wrap + .promo-carousel-wrap {
@@ -326,19 +347,8 @@
         }
 
         .promo-carousel {
-            overflow-y: auto;
-            overflow-x: hidden;
-            scroll-snap-type: y mandatory;
-            -webkit-overflow-scrolling: touch;
-            padding: 4px 4px 14px;
-            max-height: min(72vh, 820px);
-            cursor: grab;
-        }
-
-        .promo-carousel.is-dragging {
-            cursor: grabbing;
-            scroll-snap-type: none;
-            user-select: none;
+            overflow: hidden;
+            width: 100%;
         }
 
         .promo-carousel::-webkit-scrollbar {
@@ -346,17 +356,39 @@
         }
 
         .promo-track {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 14px;
-            padding: 4px 0;
+            display: flex;
+            gap: 18px;
+            align-items: stretch;
+            padding: 14px 68px;
+            will-change: transform;
+            width: max-content;
+            animation: promo-marquee 44s linear infinite;
+        }
+
+        .promo-carousel-wrap:hover .promo-track,
+        .promo-carousel-wrap:focus-within .promo-track {
+            animation-play-state: paused;
+        }
+
+        @keyframes promo-marquee {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .promo-track {
+                animation: none;
+            }
         }
 
         .promo-carousel .promo-card {
             flex: 0 0 auto;
-            width: 100%;
+            width: clamp(240px, 32vw, 320px);
             margin-bottom: 0;
-            scroll-snap-align: start;
         }
 
         .carousel-btn {
@@ -1078,7 +1110,7 @@
                         <div class="promo-carousel" role="region" aria-label="Promociones" tabindex="0">
                             <div class="promo-track">
                                 @foreach ($group as $promo)
-                                    <div class="promo-card">
+                                    <div class="promo-card" role="listitem">
                                         @php
                                             $promoImageUrl = $promo->image_media_id
                                                 ? route('media.show', $promo->image_media_id)
@@ -1091,6 +1123,43 @@
                                                 class="promo-media promo-image-btn"
                                                 data-product-src="{{ $promoImageUrl }}"
                                                 data-product-title="{{ $promo->title }}"
+                                                aria-label="Ver imagen de {{ $promo->title }}">
+                                                <span class="promo-badge" aria-hidden="true">
+                                                    <i class="material-icons">{{ $promo->badge_icon ?: 'star' }}</i>
+                                                </span>
+                                                <img src="{{ $promoImageUrl }}" alt="{{ $promo->title }}">
+                                            </button>
+                                        @else
+                                            <div class="promo-media" aria-hidden="true">
+                                                <i class="material-icons">image</i>
+                                            </div>
+                                        @endif
+                                        @if ($promo->details->count())
+                                            <div class="promo-tags" aria-label="Etiquetas de la promoción">
+                                                @foreach ($promo->details as $detail)
+                                                    <span class="promo-tag"><i class="material-icons">{{ $detail->icon }}</i>{{ $detail->text }}</span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+
+                                {{-- duplicamos para un scroll continuo sin saltos (igual que empresas aliadas) --}}
+                                @foreach ($group as $promo)
+                                    <div class="promo-card" aria-hidden="true">
+                                        @php
+                                            $promoImageUrl = $promo->image_media_id
+                                                ? route('media.show', $promo->image_media_id)
+                                                : ($promo->image_path ? asset('storage/' . $promo->image_path) : '');
+                                        @endphp
+
+                                        @if ($promoImageUrl)
+                                            <button
+                                                type="button"
+                                                class="promo-media promo-image-btn"
+                                                data-product-src="{{ $promoImageUrl }}"
+                                                data-product-title="{{ $promo->title }}"
+                                                tabindex="-1"
                                                 aria-label="Ver imagen de {{ $promo->title }}">
                                                 <span class="promo-badge" aria-hidden="true">
                                                     <i class="material-icons">{{ $promo->badge_icon ?: 'star' }}</i>
@@ -1256,245 +1325,6 @@
         </div>
     </div>
 
-    <script>
-        (function () {
-            const wraps = document.querySelectorAll('.promo-carousel-wrap');
-            if (!wraps.length) return;
-
-            const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
-            const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-            const initCarousel = (wrap) => {
-                const carousel = wrap.querySelector('.promo-carousel');
-                const prevBtn = wrap.querySelector('.carousel-btn.prev');
-                const nextBtn = wrap.querySelector('.carousel-btn.next');
-                if (!carousel) return;
-
-                // Infinite (wrap-around) arrows
-                const scrollToNextCard = (direction) => {
-                    const maxScrollTop = Math.max(0, carousel.scrollHeight - carousel.clientHeight);
-                    const items = Array.from(carousel.querySelectorAll('.promo-card'));
-                    if (!items.length || maxScrollTop <= 1) {
-                        return;
-                    }
-
-                    const currentTop = carousel.scrollTop;
-
-                    const tops = items
-                        .map((el) => el.offsetTop)
-                        .filter((t) => Number.isFinite(t))
-                        .sort((a, b) => a - b);
-
-                    const uniqueTops = tops.filter((t, idx) => idx === 0 || Math.abs(t - tops[idx - 1]) > 2);
-
-                    const nearStart = currentTop <= 2;
-                    const nearEnd = currentTop >= maxScrollTop - 2;
-
-                    if (direction < 0 && nearStart) {
-                        carousel.scrollTo({ top: maxScrollTop, behavior: 'smooth' });
-                        return;
-                    }
-
-                    if (direction > 0 && nearEnd) {
-                        carousel.scrollTo({ top: 0, behavior: 'smooth' });
-                        return;
-                    }
-
-                    if (direction > 0) {
-                        const nextTop = uniqueTops.find((t) => t > currentTop + 2);
-                        carousel.scrollTo({ top: nextTop ?? maxScrollTop, behavior: 'smooth' });
-                        return;
-                    }
-
-                    for (let i = uniqueTops.length - 1; i >= 0; i--) {
-                        if (uniqueTops[i] < currentTop - 2) {
-                            carousel.scrollTo({ top: uniqueTops[i], behavior: 'smooth' });
-                            return;
-                        }
-                    }
-
-                    carousel.scrollTo({ top: 0, behavior: 'smooth' });
-                };
-
-                if (prevBtn) {
-                    prevBtn.disabled = false;
-                    prevBtn.addEventListener('click', () => scrollToNextCard(-1));
-                }
-
-                if (nextBtn) {
-                    nextBtn.disabled = false;
-                    nextBtn.addEventListener('click', () => scrollToNextCard(1));
-                }
-
-                carousel.addEventListener('keydown', (e) => {
-                    if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        scrollToNextCard(-1);
-                    }
-                    if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        scrollToNextCard(1);
-                    }
-                });
-
-                // Mouse drag / pointer drag scrolling
-                let isDragging = false;
-                let dragPointerId = null;
-                let dragStartY = 0;
-                let dragStartScrollTop = 0;
-                let didDrag = false;
-                let suppressNextClick = false;
-
-                carousel.addEventListener(
-                    'click',
-                    (e) => {
-                        if (!suppressNextClick) return;
-                        e.preventDefault();
-                        e.stopPropagation();
-                        suppressNextClick = false;
-                    },
-                    true
-                );
-
-                const snapToNearestRow = () => {
-                    const maxScrollTop = Math.max(0, carousel.scrollHeight - carousel.clientHeight);
-                    const items = Array.from(carousel.querySelectorAll('.promo-card'));
-                    if (!items.length || maxScrollTop <= 1) return;
-
-                    const tops = items
-                        .map((el) => el.offsetTop)
-                        .filter((t) => Number.isFinite(t))
-                        .sort((a, b) => a - b);
-
-                    const uniqueTops = tops.filter((t, idx) => idx === 0 || Math.abs(t - tops[idx - 1]) > 2);
-                    if (!uniqueTops.length) return;
-
-                    const currentTop = carousel.scrollTop;
-                    let nearest = uniqueTops[0];
-                    let bestDist = Math.abs(currentTop - nearest);
-                    for (let i = 1; i < uniqueTops.length; i++) {
-                        const dist = Math.abs(currentTop - uniqueTops[i]);
-                        if (dist < bestDist) {
-                            bestDist = dist;
-                            nearest = uniqueTops[i];
-                        }
-                    }
-
-                    carousel.scrollTo({
-                        top: clamp(nearest, 0, maxScrollTop),
-                        behavior: prefersReducedMotion ? 'auto' : 'smooth',
-                    });
-                };
-
-                const startDrag = (e) => {
-                    if (prefersReducedMotion) {
-                        // Reduced motion doesn't mean no drag, but we can keep snapping immediate.
-                    }
-
-                    if (e.pointerType === 'mouse' && e.button !== 0) return;
-
-                    isDragging = true;
-                    didDrag = false;
-                    dragPointerId = e.pointerId;
-                    dragStartY = e.clientY;
-                    dragStartScrollTop = carousel.scrollTop;
-                };
-
-                const moveDrag = (e) => {
-                    if (!isDragging) return;
-                    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
-
-                    const maxScrollTop = Math.max(0, carousel.scrollHeight - carousel.clientHeight);
-                    const deltaY = e.clientY - dragStartY;
-
-                    // Only treat as drag after a small threshold, so clicks still work.
-                    if (!didDrag) {
-                        if (Math.abs(deltaY) <= 6) return;
-                        didDrag = true;
-                        carousel.classList.add('is-dragging');
-                        try {
-                            carousel.setPointerCapture(dragPointerId);
-                        } catch (_) {
-                            // ignore
-                        }
-                    }
-
-                    carousel.scrollTop = clamp(dragStartScrollTop - deltaY, 0, maxScrollTop);
-                    e.preventDefault();
-                };
-
-                const endDrag = (e) => {
-                    if (!isDragging) return;
-                    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
-
-                    isDragging = false;
-                    dragPointerId = null;
-                    carousel.classList.remove('is-dragging');
-
-                    if (didDrag) {
-                        suppressNextClick = true;
-                        window.setTimeout(() => {
-                            suppressNextClick = false;
-                        }, 0);
-                        snapToNearestRow();
-                    }
-                };
-
-                carousel.addEventListener('pointerdown', startDrag);
-                carousel.addEventListener('pointermove', moveDrag, { passive: false });
-                carousel.addEventListener('pointerup', endDrag);
-                carousel.addEventListener('pointercancel', endDrag);
-
-                // Auto-advance (pauses on hover/focus). Respects prefers-reduced-motion.
-                if (!prefersReducedMotion) {
-                    let timer = null;
-                    let resumeHandle = null;
-
-                    const start = () => {
-                        if (timer) return;
-                        timer = window.setInterval(() => scrollToNextCard(1), 4500);
-                    };
-
-                    const stop = () => {
-                        if (!timer) return;
-                        window.clearInterval(timer);
-                        timer = null;
-                    };
-
-                    const resumeSoon = () => {
-                        stop();
-                        if (resumeHandle) window.clearTimeout(resumeHandle);
-                        resumeHandle = window.setTimeout(() => {
-                            resumeHandle = null;
-                            start();
-                        }, 1200);
-                    };
-
-                    wrap.addEventListener('mouseenter', stop);
-                    wrap.addEventListener('mouseleave', start);
-                    carousel.addEventListener('focusin', stop);
-                    carousel.addEventListener('focusout', start);
-
-                    // If user manually scrolls, wait a bit before resuming.
-                    carousel.addEventListener('scroll', resumeSoon, { passive: true });
-                    carousel.addEventListener('touchstart', stop, { passive: true });
-                    carousel.addEventListener('touchend', start, { passive: true });
-                    carousel.addEventListener('pointerdown', stop, { passive: true });
-                    carousel.addEventListener('pointerup', start, { passive: true });
-                    carousel.addEventListener('pointercancel', start, { passive: true });
-
-                    document.addEventListener('visibilitychange', () => {
-                        if (document.hidden) stop();
-                        else start();
-                    });
-
-                    start();
-                }
-            };
-
-            wraps.forEach(initCarousel);
-        })();
-    </script>
     <script>
         (function () {
             const lightbox = document.getElementById('product-lightbox');
