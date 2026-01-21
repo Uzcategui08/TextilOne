@@ -1335,6 +1335,7 @@
                 let rafId = null;
                 let lastTs = null;
                 let resumeHandle = null;
+                let isAutoScrolling = false;
 
                 // Speed is pixels/second (multiplier per-row)
                 const speedMultiplier = Number.parseFloat(wrap.getAttribute('data-speed') || '1') || 1;
@@ -1360,10 +1361,14 @@
                     lastTs = ts;
 
                     const half = getHalfWidth();
+                    isAutoScrolling = true;
                     carousel.scrollLeft += speed * dt;
                     if (carousel.scrollLeft >= half) {
                         carousel.scrollLeft -= half;
                     }
+                    window.requestAnimationFrame(() => {
+                        isAutoScrolling = false;
+                    });
 
                     rafId = window.requestAnimationFrame(step);
                 };
@@ -1464,8 +1469,16 @@
                 carousel.addEventListener('pointerup', onPointerUp);
                 carousel.addEventListener('pointercancel', onPointerUp);
 
-                // If user scrolls (trackpad), pause briefly then resume
-                carousel.addEventListener('scroll', () => resumeSoon(1100), { passive: true });
+                // If user scrolls (trackpad), pause briefly then resume. Ignore programmatic auto-scroll.
+                carousel.addEventListener(
+                    'scroll',
+                    () => {
+                        if (isAutoScrolling) return;
+                        resumeSoon(1100);
+                    },
+                    { passive: true }
+                );
+                carousel.addEventListener('wheel', () => resumeSoon(1100), { passive: true });
                 carousel.addEventListener('touchstart', pause, { passive: true });
                 carousel.addEventListener('touchend', () => resumeSoon(900), { passive: true });
 
