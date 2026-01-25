@@ -892,7 +892,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 12px;
+            font-size: 25px;
             font-weight: 900;
             letter-spacing: 0.6px;
             text-transform: uppercase;
@@ -1169,9 +1169,9 @@
                 </h2>
                 @foreach ($promotions as $groupIndex => $group)
                     @if ($loop->iteration === 3)
-                        <div class="section-title" style="margin-top: -6px;">
+                        <div class="promo-mini-title" style="margin-top: -6px;">
                             <i class="material-icons">local_offer</i>
-                           <h2>Promociones de bordado</h2>
+                           Promociones de bordado
                         </div>
                     @endif
                     <div class="promo-carousel-wrap" data-carousel="promo-{{ $groupIndex }}" style="--promo-duration: {{ $loop->iteration === 2 ? '62s' : '44s' }};">
