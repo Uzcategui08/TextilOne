@@ -1107,14 +1107,14 @@
             <section class="section promotions" id="promotions">
                 <h2 class="section-title">
                     <i class="material-icons">local_offer</i>
-                    {{ $settings->promotions_title ?: 'Promociones Exclusivas' }}  
+                    {{ $settings->promotions_title ?: 'Promociones De Estampado' }}  
                     <span class="highlight promotions-hint">{{ $settings->promotions_subtitle ?: '¡Dar click a las imagenes para ver más!' }}</span>
                 </h2>
                 @foreach ($promotions as $groupIndex => $group)
                     @if ($loop->iteration === 3)
-                        <div class="promo-mini-title" style="margin-top: -6px;">
+                        <div class="section-title" style="margin-top: -6px;">
                             <i class="material-icons">local_offer</i>
-                            Promociones de bordado
+                           <h2>Promociones de bordado</h2>
                         </div>
                     @endif
                     <div class="promo-carousel-wrap" data-carousel="promo-{{ $groupIndex }}" style="--promo-duration: {{ $loop->iteration === 2 ? '62s' : '44s' }};">
