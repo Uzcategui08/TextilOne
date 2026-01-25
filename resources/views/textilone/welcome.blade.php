@@ -3,7 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $settings->site_title ?: 'TextilOne' }}</title>
+    @php
+        $siteName = $settings->site_title ?: config('app.name', 'TextilOne');
+        $rawDescription = $settings->hero_subtitle
+            ?: $settings->guarantee_text
+            ?: 'Personalización de textiles: estampados, bordados y soluciones para empresas y particulares.';
+
+        $seoDescription = \Illuminate\Support\Str::of(strip_tags((string) $rawDescription))
+            ->squish()
+            ->limit(160)
+            ->toString();
+
+        $canonicalUrl = rtrim(url('/'), '/') . '/';
+        $seoImageUrl = $logoUrl;
+
+        $sameAs = isset($socialLinks)
+            ? $socialLinks->pluck('url')->filter()->values()->all()
+            : [];
+
+        $schemaGraph = [
+            [
+                '@type' => 'WebSite',
+                'name' => $siteName,
+                'url' => $canonicalUrl,
+            ],
+            [
+                '@type' => 'Organization',
+                'name' => $siteName,
+                'url' => $canonicalUrl,
+                'logo' => $seoImageUrl,
+                'telephone' => $settings->phone ?: null,
+                'email' => $settings->email ?: null,
+                'address' => $settings->location ?: null,
+                'sameAs' => $sameAs,
+            ],
+        ];
+    @endphp
+
+    <title>{{ $siteName }}</title>
+    <meta name="description" content="{{ $seoDescription }}">
+    <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_CL">
+    <meta property="og:site_name" content="{{ $siteName }}">
+    <meta property="og:title" content="{{ $siteName }}">
+    <meta property="og:description" content="{{ $seoDescription }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:image" content="{{ $seoImageUrl }}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $siteName }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
+    <meta name="twitter:image" content="{{ $seoImageUrl }}">
+
+    <script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@graph' => $schemaGraph], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+
+    <link rel="icon" href="{{ $seoImageUrl }}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>

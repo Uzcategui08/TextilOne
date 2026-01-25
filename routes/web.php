@@ -3,6 +3,7 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MediaFileController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\Admin\HomeSettingsController;
 use App\Http\Controllers\Admin\HomeServiceController;
 use App\Http\Controllers\Admin\HomeProductController;
@@ -12,6 +13,8 @@ use App\Http\Controllers\Admin\SocialLinkController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class);
+
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::get('/media/{mediaFile}', [MediaFileController::class, 'show'])->name('media.show');
 
