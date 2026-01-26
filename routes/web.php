@@ -3,6 +3,7 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MediaFileController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SiteAssetController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\Admin\HomeSettingsController;
 use App\Http\Controllers\Admin\HomeServiceController;
@@ -13,6 +14,10 @@ use App\Http\Controllers\Admin\SocialLinkController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class);
+
+Route::get('/site-logo', [SiteAssetController::class, 'logo'])->name('site.logo');
+Route::get('/favicon.ico', [SiteAssetController::class, 'favicon'])->name('site.favicon');
+Route::get('/apple-touch-icon.png', [SiteAssetController::class, 'appleTouchIcon'])->name('site.apple-touch-icon');
 
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 

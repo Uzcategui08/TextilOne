@@ -15,7 +15,8 @@
             ->toString();
 
         $canonicalUrl = rtrim(url('/'), '/') . '/';
-        $seoImageUrl = $logoUrl;
+        $seoImageUrl = route('site.logo');
+        $faviconUrl = route('site.favicon');
 
         $sameAs = isset($socialLinks)
             ? $socialLinks->pluck('url')->filter()->values()->all()
@@ -52,6 +53,7 @@
     <meta property="og:description" content="{{ $seoDescription }}">
     <meta property="og:url" content="{{ $canonicalUrl }}">
     <meta property="og:image" content="{{ $seoImageUrl }}">
+    <meta property="og:image:alt" content="{{ $siteName }}">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $siteName }}">
@@ -60,7 +62,8 @@
 
     <script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@graph' => $schemaGraph], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 
-    <link rel="icon" href="{{ $seoImageUrl }}">
+    <link rel="icon" href="{{ $faviconUrl }}">
+    <link rel="apple-touch-icon" href="{{ $seoImageUrl }}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -1104,7 +1107,7 @@
         <div class="content">
             <header class="header">
                 <div class="logo">
-                    <img src="{{ $logoUrl }}" alt="TextilOne Logo">
+                    <img src="{{ $seoImageUrl }}" alt="TextilOne Logo">
                 </div>
                 <nav class="nav">
                     <a class="nav-item" href="#services">{{ $settings->nav_services ?: 'Servicios' }}</a>
