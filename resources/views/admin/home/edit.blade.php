@@ -140,12 +140,20 @@
                                 <input id="phone" type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $settings->phone) }}">
                                 @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-8">
+                                <label for="whatsapp_message">WhatsApp: Mensaje</label>
+                                <input id="whatsapp_message" type="text" name="whatsapp_message" class="form-control @error('whatsapp_message') is-invalid @enderror" value="{{ old('whatsapp_message', $settings->whatsapp_message) }}" placeholder="Ej: Hola, quisiera cotizar...">
+                                @error('whatsapp_message')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
                                 <label for="email">Email</label>
                                 <input id="email" type="text" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $settings->email) }}">
                                 @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-6">
                                 <label for="location">Ubicación</label>
                                 <input id="location" type="text" name="location" class="form-control @error('location') is-invalid @enderror" value="{{ old('location', $settings->location) }}">
                                 @error('location')<div class="invalid-feedback">{{ $message }}</div>@enderror

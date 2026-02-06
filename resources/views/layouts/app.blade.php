@@ -35,5 +35,7 @@
                 {{ $slot }}
             </main>
         </div>
+
+        <x-whatsapp-float />
     </body>
 </html>

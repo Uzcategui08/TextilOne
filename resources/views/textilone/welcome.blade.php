@@ -1713,5 +1713,7 @@
             });
         })();
     </script>
+
+    <x-whatsapp-float :phone="$settings->phone" />
 </body>
 </html>

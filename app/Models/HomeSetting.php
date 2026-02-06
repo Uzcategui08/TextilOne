@@ -26,6 +26,7 @@ class HomeSetting extends Model
     'guarantee_title',
     'guarantee_text',
     'phone',
+    'whatsapp_message',
     'email',
     'location',
     'copyright_text',

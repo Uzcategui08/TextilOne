@@ -46,6 +46,7 @@ class HomeSettingsController
       'guarantee_title' => ['nullable', 'string', 'max:255'],
       'guarantee_text' => ['nullable', 'string', 'max:2000'],
       'phone' => ['nullable', 'string', 'max:255'],
+      'whatsapp_message' => ['nullable', 'string', 'max:500'],
       'email' => ['nullable', 'string', 'max:255'],
       'location' => ['nullable', 'string', 'max:255'],
       'copyright_text' => ['nullable', 'string', 'max:255'],
